@@ -5,12 +5,16 @@ import com.bestbrightness.pos.model.Product;
 import com.bestbrightness.pos.model.Sale;
 import com.bestbrightness.pos.model.SaleItem;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class PosServiceTest {
@@ -18,11 +22,12 @@ class PosServiceTest {
     @TempDir
     Path tempDir;
 
+    private DatabaseManager databaseManager;
     private PosService posService;
 
     @BeforeEach
     void setUp() throws Exception {
-        DatabaseManager databaseManager = new DatabaseManager(tempDir.resolve("test.db"));
+        databaseManager = new DatabaseManager(tempDir.resolve("test.db"));
         databaseManager.initializeDatabase();
         posService = new PosService(databaseManager);
     }
@@ -60,5 +65,37 @@ class PosServiceTest {
     @Test
     void appliesDiscountAtTheThreshold() {
         assertEquals(50.0, posService.calculateDiscount(500.0), 0.001);
+    }
+
+    @Test
+    void rollsBackWhenStockChangesBeforeCheckout() throws Exception {
+        Product bleach = posService.addProduct("Bleach", 250.0, 5);
+        Product soap = posService.addProduct("Soap", 100.0, 1);
+
+        List<SaleItem> cartItems = List.of(
+                posService.createSaleItem(bleach, 1),
+                posService.createSaleItem(soap, 1));
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "UPDATE products SET quantity = 0 WHERE product_id = ?")) {
+            statement.setInt(1, soap.getId());
+            statement.executeUpdate();
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> posService.completeSale(cartItems));
+
+        List<Product> products = posService.getProducts();
+        Product updatedBleach = products.stream().filter(product -> product.getId() == bleach.getId()).findFirst().orElseThrow();
+        Product updatedSoap = products.stream().filter(product -> product.getId() == soap.getId()).findFirst().orElseThrow();
+        assertEquals(5, updatedBleach.getQuantity());
+        assertEquals(0, updatedSoap.getQuantity());
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM sales");
+             ResultSet resultSet = statement.executeQuery()) {
+            resultSet.next();
+            assertEquals(0, resultSet.getInt(1));
+        }
     }
 }

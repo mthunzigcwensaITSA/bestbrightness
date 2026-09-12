@@ -22,6 +22,7 @@ class AuthServiceTest {
     void setUp() throws Exception {
         DatabaseManager databaseManager = new DatabaseManager(tempDir.resolve("auth.db"));
         databaseManager.initializeDatabase();
+        databaseManager.createInitialAdmin("admin123");
         authService = new AuthService(databaseManager);
     }
 
@@ -44,5 +45,10 @@ class AuthServiceTest {
     @Test
     void rejectsInvalidCredentials() throws Exception {
         assertNull(authService.authenticate("admin", "wrong-password"));
+    }
+
+    @Test
+    void rejectsWhitespaceOnlyUsername() throws Exception {
+        assertNull(authService.authenticate("   ", "admin123"));
     }
 }

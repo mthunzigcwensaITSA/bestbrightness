@@ -10,16 +10,17 @@ Java Swing point-of-sale system for Best Brightness cleaning products.
 - Receipt generation
 - SQLite database storage for users, products, sales, and sale items
 
-## Default Login
+## First-Time Setup
 - Username: `admin`
-- Password: `admin123`
+- On the first GUI launch, the application prompts you to create the initial admin password.
+- For headless or automated startup, set `BEST_BRIGHTNESS_ADMIN_PASSWORD` before running the app.
 
 ## Run
 This is a Maven project that can be opened directly in NetBeans.
 
 ```bash
 mvn test
-mvn exec:java
+BEST_BRIGHTNESS_ADMIN_PASSWORD=your-password mvn exec:java
 ```
 
 On first run the application creates `bestbrightness.db` in the project directory.

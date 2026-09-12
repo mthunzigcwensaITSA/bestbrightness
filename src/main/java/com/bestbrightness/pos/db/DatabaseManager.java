@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -57,28 +58,30 @@ public class DatabaseManager {
                         FOREIGN KEY (product_id) REFERENCES products (product_id)
                     )
                     """);
-            upsertDefaultAdmin(connection);
         }
     }
 
-    private void upsertDefaultAdmin(Connection connection) throws SQLException {
-        String passwordHash = PasswordUtil.hashPassword("admin123");
+    public boolean hasUsers() throws SQLException {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM users LIMIT 1");
+             ResultSet resultSet = statement.executeQuery()) {
+            return resultSet.next();
+        }
+    }
 
-        try (PreparedStatement updateLegacyPassword = connection.prepareStatement("""
-                UPDATE users
-                SET password = ?
-                WHERE username = 'admin' AND password = 'admin123'
-                """);
-             PreparedStatement insertAdmin = connection.prepareStatement("""
+    public void createInitialAdmin(String password) throws SQLException {
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Admin password is required.");
+        }
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO users (username, password)
                      SELECT 'admin', ?
-                     WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
+                     WHERE NOT EXISTS (SELECT 1 FROM users)
                      """)) {
-            updateLegacyPassword.setString(1, passwordHash);
-            updateLegacyPassword.executeUpdate();
-
-            insertAdmin.setString(1, passwordHash);
-            insertAdmin.executeUpdate();
+            statement.setString(1, PasswordUtil.hashPassword(password));
+            statement.executeUpdate();
         }
     }
 }
