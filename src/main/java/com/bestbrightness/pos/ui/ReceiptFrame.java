@@ -2,9 +2,11 @@ package com.bestbrightness.pos.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,6 +15,7 @@ import javax.swing.JTextArea;
 public class ReceiptFrame extends JFrame {
 
     private final JTextArea receiptArea = new JTextArea();
+    private ReceiptRenderResult currentReceipt;
 
     public ReceiptFrame() {
         initialize();
@@ -37,8 +40,19 @@ public class ReceiptFrame extends JFrame {
         UiTheme.styleTextArea(receiptArea);
         receiptArea.setEditable(false);
 
+        JButton downloadButton = UiTheme.createSecondaryButton("Download Receipt");
+        downloadButton.addActionListener(event -> {
+            if (currentReceipt != null) {
+                MainFrame.saveReceiptToFile(this, currentReceipt);
+            }
+        });
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonRow.setOpaque(false);
+        buttonRow.add(downloadButton);
+
         card.add(titlePanel, BorderLayout.NORTH);
         card.add(new JScrollPane(receiptArea), BorderLayout.CENTER);
+        card.add(buttonRow, BorderLayout.SOUTH);
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiTheme.BACKGROUND);
@@ -46,10 +60,11 @@ public class ReceiptFrame extends JFrame {
         root.add(card, BorderLayout.CENTER);
 
         setContentPane(root);
-        setSize(UiTheme.fitToScreen(460, 560));
+        setSize(UiTheme.fitToScreen(480, 620));
     }
 
     public void showReceipt(Component parent, ReceiptRenderResult receipt) {
+        this.currentReceipt = receipt;
         setTitle(receipt.warning()
                 ? "Best Brightness POS - Receipt Warning"
                 : "Best Brightness POS - Receipt Slip");

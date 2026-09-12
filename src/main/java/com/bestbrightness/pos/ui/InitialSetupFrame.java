@@ -40,7 +40,7 @@ public class InitialSetupFrame extends JFrame {
 
         JPanel formCard = UiTheme.createCard();
         formCard.setLayout(new BorderLayout(0, 18));
-        formCard.setPreferredSize(new Dimension(640, 0));
+        formCard.setPreferredSize(new Dimension(640, 360));
 
         UiTheme.styleField(passwordField);
         UiTheme.styleField(confirmField);

@@ -13,6 +13,9 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -61,13 +65,14 @@ public class MainFrame extends JFrame {
     private final JTextField productQuantityField = new JTextField();
     private final JComboBox<Product> productComboBox = new JComboBox<>();
     private final JTextField saleQuantityField = new JTextField();
+    private final JTextField restockQuantityField = new JTextField();
     private final JLabel totalLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel discountLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel finalTotalLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel inventoryCountLabel = UiTheme.createMetricValue("0");
     private final JLabel inventoryValueLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel lowStockLabel = UiTheme.createMetricValue("0");
-    private final JTextArea receiptArea = new JTextArea(12, 32);
+    private final JTextArea receiptArea = new JTextArea(22, 32);
     private final JTable productTable = new JTable(productTableModel);
     private final JTable cartTable = new JTable(cartTableModel);
     private final ReceiptFrame receiptFrame = new ReceiptFrame();
@@ -82,7 +87,7 @@ public class MainFrame extends JFrame {
     private void initialize(User user) {
         setTitle("Best Brightness POS - Welcome " + user.getUsername());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(980, 680));
+        setMinimumSize(new Dimension(1040, 780));
         configureComponents();
 
         JPanel root = new JPanel(new BorderLayout(0, 20));
@@ -91,13 +96,14 @@ public class MainFrame extends JFrame {
         root.add(createHeader(user), BorderLayout.NORTH);
         root.add(createMainContent(), BorderLayout.CENTER);
         setContentPane(root);
-        setSize(UiTheme.fitToScreen(1220, 760));
+        setSize(UiTheme.fitToScreen(1320, 900));
         setLocationRelativeTo(null);
     }
 
     private void configureComponents() {
         UiTheme.styleComboBox(productComboBox);
         UiTheme.styleField(saleQuantityField);
+        UiTheme.styleField(restockQuantityField);
         UiTheme.styleTextArea(receiptArea);
         receiptArea.setEditable(false);
         receiptArea.setText("Complete a sale to preview the generated receipt slip here.");
@@ -106,7 +112,9 @@ public class MainFrame extends JFrame {
         UiTheme.styleTable(cartTable);
         productTable.setAutoCreateRowSorter(true);
         productTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        productTable.setPreferredScrollableViewportSize(new Dimension(520, 320));
         cartTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        cartTable.setPreferredScrollableViewportSize(new Dimension(420, 320));
     }
 
     private JPanel createHeader(User user) {
@@ -251,9 +259,10 @@ public class MainFrame extends JFrame {
         titlePanel.add(Box.createVerticalStrut(4));
         titlePanel.add(subtitle);
 
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel footer = new JPanel(new BorderLayout(12, 0));
         footer.setOpaque(false);
-        footer.add(UiTheme.createMutedLabel("Products update automatically after every save."));
+        footer.add(UiTheme.createMutedLabel("Products update automatically after every save."), BorderLayout.WEST);
+        footer.add(createRestockPanel(), BorderLayout.EAST);
 
         card.add(titlePanel, BorderLayout.NORTH);
         card.add(UiTheme.createScrollPane(productTable), BorderLayout.CENTER);
@@ -261,18 +270,27 @@ public class MainFrame extends JFrame {
         return card;
     }
 
+    private JPanel createRestockPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        panel.setOpaque(false);
+        restockQuantityField.putClientProperty("JTextField.placeholderText", "Restock qty");
+        restockQuantityField.setPreferredSize(new Dimension(90, 38));
+        JButton restockButton = UiTheme.createSecondaryButton("Restock Selected");
+        restockButton.addActionListener(event -> restockSelectedProduct());
+        panel.add(UiTheme.createMutedLabel("Select a product row, then:"));
+        panel.add(restockQuantityField);
+        panel.add(restockButton);
+        return panel;
+    }
+
     private JPanel createSalesPanel() {
-        JPanel left = new JPanel(new BorderLayout(0, 16));
-        left.setOpaque(false);
-        left.add(createSalesComposerCard(), BorderLayout.NORTH);
-        left.add(createCartCard(), BorderLayout.CENTER);
+        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createSalesComposerCard(), createCartCard());
+        UiTheme.styleSplitPane(leftSplit, 0.0);
 
-        JPanel right = new JPanel(new BorderLayout(0, 16));
-        right.setOpaque(false);
-        right.add(createTotalsCard(), BorderLayout.NORTH);
-        right.add(createReceiptCard(), BorderLayout.CENTER);
+        JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createTotalsCard(), createReceiptCard());
+        UiTheme.styleSplitPane(rightSplit, 0.0);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSplit, rightSplit);
         UiTheme.styleSplitPane(splitPane, 0.58);
 
         JPanel panel = new JPanel(new BorderLayout());
@@ -409,9 +427,17 @@ public class MainFrame extends JFrame {
 
         JButton openWindowButton = UiTheme.createSecondaryButton("Open Receipt Window");
         openWindowButton.addActionListener(event -> openReceiptWindow());
+        JButton downloadButton = UiTheme.createSecondaryButton("Download Receipt");
+        downloadButton.addActionListener(event -> downloadReceipt());
+
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        buttonRow.setOpaque(false);
+        buttonRow.add(openWindowButton);
+        buttonRow.add(downloadButton);
+
         card.add(titlePanel, BorderLayout.NORTH);
         card.add(UiTheme.createScrollPane(receiptArea), BorderLayout.CENTER);
-        card.add(openWindowButton, BorderLayout.SOUTH);
+        card.add(buttonRow, BorderLayout.SOUTH);
         return card;
     }
 
@@ -574,5 +600,55 @@ public class MainFrame extends JFrame {
             return;
         }
         receiptFrame.showReceipt(this, latestReceipt);
+    }
+
+    private void downloadReceipt() {
+        if (latestReceipt == null) {
+            JOptionPane.showMessageDialog(this, "Complete a sale first to generate a receipt slip.",
+                    "Receipt Unavailable", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        saveReceiptToFile(this, latestReceipt);
+    }
+
+    static void saveReceiptToFile(Component parent, ReceiptRenderResult receipt) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setSelectedFile(new File("receipt.txt"));
+        int result = fileChooser.showSaveDialog(parent);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File file = fileChooser.getSelectedFile();
+        try {
+            Files.writeString(file.toPath(), receipt.text());
+            JOptionPane.showMessageDialog(parent, "Receipt saved to " + file.getAbsolutePath());
+        } catch (IOException exception) {
+            JOptionPane.showMessageDialog(parent, "Could not save receipt: " + exception.getMessage(),
+                    "Save Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void restockSelectedProduct() {
+        int selectedRow = productTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Select a product in the inventory table first.",
+                    "Selection Required", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        try {
+            int modelRow = productTable.convertRowIndexToModel(selectedRow);
+            int productId = (int) productTableModel.getValueAt(modelRow, 0);
+            int amount = Integer.parseInt(restockQuantityField.getText().trim());
+            Product updated = posService.restockProduct(productId, amount);
+            restockQuantityField.setText("");
+            JOptionPane.showMessageDialog(this,
+                    "Stock updated. " + updated.getName() + " now has " + updated.getQuantity() + " units.");
+            loadProducts();
+        } catch (NumberFormatException exception) {
+            JOptionPane.showMessageDialog(this, "Enter a valid restock quantity.", "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException | SQLException exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Restock Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
