@@ -68,7 +68,7 @@ public class MainFrame extends JFrame {
     private final JLabel lowStockLabel = UiTheme.createMetricValue("0");
     private final JTextArea receiptArea = new JTextArea(12, 32);
     private final ReceiptFrame receiptFrame = new ReceiptFrame();
-    private boolean latestReceiptWarning;
+    private ReceiptRenderResult latestReceipt;
 
     public MainFrame(User user, PosService posService) {
         this.posService = posService;
@@ -472,7 +472,7 @@ public class MainFrame extends JFrame {
             updateTotals();
             loadProducts();
             ReceiptRenderResult receipt = ReceiptRenderer.render(sale);
-            latestReceiptWarning = receipt.warning();
+            latestReceipt = receipt;
             receiptArea.setText(receipt.text());
             receiptArea.setCaretPosition(0);
             receiptFrame.showReceipt(this, receipt);
@@ -539,11 +539,11 @@ public class MainFrame extends JFrame {
     }
 
     private void openReceiptWindow() {
-        if (receiptArea.getText().isBlank()) {
+        if (latestReceipt == null) {
             JOptionPane.showMessageDialog(this, "Complete a sale first to generate a receipt slip.",
                     "Receipt Unavailable", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        receiptFrame.showReceipt(this, new ReceiptRenderResult(receiptArea.getText(), latestReceiptWarning));
+        receiptFrame.showReceipt(this, latestReceipt);
     }
 }
