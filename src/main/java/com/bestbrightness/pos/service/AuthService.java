@@ -24,19 +24,18 @@ public class AuthService {
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT user_id, username, password
                      FROM users
-                     WHERE username = ? AND password = ?
+                     WHERE username = ?
                      """)) {
             statement.setString(1, username.trim());
-            statement.setString(2, password);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-                if (!resultSet.next()) {
+                if (!resultSet.next()
+                        || !PasswordUtil.matches(password, resultSet.getString("password"))) {
                     return null;
                 }
                 return new User(
                         resultSet.getInt("user_id"),
-                        resultSet.getString("username"),
-                        resultSet.getString("password"));
+                        resultSet.getString("username"));
             }
         }
     }

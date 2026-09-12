@@ -56,4 +56,9 @@ class PosServiceTest {
     void keepsDiscountAtZeroBelowThreshold() {
         assertEquals(0.0, posService.calculateDiscount(499.99), 0.001);
     }
+
+    @Test
+    void appliesDiscountAtTheThreshold() {
+        assertEquals(50.0, posService.calculateDiscount(500.0), 0.001);
+    }
 }

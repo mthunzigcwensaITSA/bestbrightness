@@ -34,6 +34,14 @@ class AuthServiceTest {
     }
 
     @Test
+    void authenticatesWithTrimmedUsername() throws Exception {
+        User user = authService.authenticate("  admin  ", "admin123");
+
+        assertNotNull(user);
+        assertEquals("admin", user.getUsername());
+    }
+
+    @Test
     void rejectsInvalidCredentials() throws Exception {
         assertNull(authService.authenticate("admin", "wrong-password"));
     }

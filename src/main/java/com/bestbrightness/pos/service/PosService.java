@@ -100,11 +100,10 @@ public class PosService {
         try (Connection connection = databaseManager.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                validateStock(connection, items);
                 int saleId = insertSale(connection, total, discount, finalTotal, saleDate);
                 for (SaleItem item : items) {
-                    insertSaleItem(connection, saleId, item);
                     updateStock(connection, item);
+                    insertSaleItem(connection, saleId, item);
                     item.setSaleId(saleId);
                 }
                 connection.commit();
@@ -130,25 +129,6 @@ public class PosService {
         }
         if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative.");
-        }
-    }
-
-    private void validateStock(Connection connection, List<SaleItem> items) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT quantity FROM products WHERE product_id = ?
-                """)) {
-            for (SaleItem item : items) {
-                statement.setInt(1, item.getProductId());
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (!resultSet.next()) {
-                        throw new IllegalArgumentException("Product no longer exists.");
-                    }
-                    int currentQuantity = resultSet.getInt("quantity");
-                    if (item.getQuantity() > currentQuantity) {
-                        throw new IllegalArgumentException("Insufficient stock for " + item.getProductName() + ".");
-                    }
-                }
-            }
         }
     }
 
@@ -190,11 +170,14 @@ public class PosService {
         try (PreparedStatement statement = connection.prepareStatement("""
                 UPDATE products
                 SET quantity = quantity - ?
-                WHERE product_id = ?
+                WHERE product_id = ? AND quantity >= ?
                 """)) {
             statement.setInt(1, item.getQuantity());
             statement.setInt(2, item.getProductId());
-            statement.executeUpdate();
+            statement.setInt(3, item.getQuantity());
+            if (statement.executeUpdate() == 0) {
+                throw new IllegalArgumentException("Insufficient stock for " + item.getProductName() + ".");
+            }
         }
     }
 }

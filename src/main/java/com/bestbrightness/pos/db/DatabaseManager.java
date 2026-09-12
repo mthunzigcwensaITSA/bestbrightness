@@ -1,8 +1,10 @@
 package com.bestbrightness.pos.db;
 
+import com.bestbrightness.pos.service.PasswordUtil;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -55,11 +57,28 @@ public class DatabaseManager {
                         FOREIGN KEY (product_id) REFERENCES products (product_id)
                     )
                     """);
-            statement.executeUpdate("""
-                    INSERT INTO users (username, password)
-                    SELECT 'admin', 'admin123'
-                    WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
-                    """);
+            upsertDefaultAdmin(connection);
+        }
+    }
+
+    private void upsertDefaultAdmin(Connection connection) throws SQLException {
+        String passwordHash = PasswordUtil.hashPassword("admin123");
+
+        try (PreparedStatement updateLegacyPassword = connection.prepareStatement("""
+                UPDATE users
+                SET password = ?
+                WHERE username = 'admin' AND password = 'admin123'
+                """);
+             PreparedStatement insertAdmin = connection.prepareStatement("""
+                     INSERT INTO users (username, password)
+                     SELECT 'admin', ?
+                     WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
+                     """)) {
+            updateLegacyPassword.setString(1, passwordHash);
+            updateLegacyPassword.executeUpdate();
+
+            insertAdmin.setString(1, passwordHash);
+            insertAdmin.executeUpdate();
         }
     }
 }
