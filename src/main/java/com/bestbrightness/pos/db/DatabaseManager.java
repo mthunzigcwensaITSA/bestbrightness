@@ -70,7 +70,11 @@ public class DatabaseManager {
     }
 
     public void createInitialAdmin(String password) throws SQLException {
-        if (password == null || password.isBlank()) {
+        createInitialAdmin(password == null ? null : password.toCharArray());
+    }
+
+    public void createInitialAdmin(char[] password) throws SQLException {
+        if (password == null || password.length == 0 || isBlank(password)) {
             throw new IllegalArgumentException("Admin password is required.");
         }
 
@@ -83,5 +87,14 @@ public class DatabaseManager {
             statement.setString(1, PasswordUtil.hashPassword(password));
             statement.executeUpdate();
         }
+    }
+
+    private boolean isBlank(char[] value) {
+        for (char character : value) {
+            if (!Character.isWhitespace(character)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

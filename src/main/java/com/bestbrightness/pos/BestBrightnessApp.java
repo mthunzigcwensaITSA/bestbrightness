@@ -7,6 +7,7 @@ import com.bestbrightness.pos.ui.LoginFrame;
 import com.bestbrightness.pos.ui.UiTheme;
 import java.awt.GraphicsEnvironment;
 import java.nio.file.Path;
+import java.util.Arrays;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.SwingUtilities;
@@ -72,19 +73,35 @@ public final class BestBrightnessApp {
                 return false;
             }
 
-            String password = new String(passwordField.getPassword());
-            String confirmation = new String(confirmField.getPassword());
-            if (password.isBlank()) {
-                JOptionPane.showMessageDialog(null, "Admin password cannot be blank.");
-                continue;
-            }
-            if (!password.equals(confirmation)) {
-                JOptionPane.showMessageDialog(null, "Passwords do not match.");
-                continue;
-            }
+            char[] password = passwordField.getPassword();
+            char[] confirmation = confirmField.getPassword();
+            try {
+                if (password.length == 0 || isBlank(password)) {
+                    JOptionPane.showMessageDialog(null, "Admin password cannot be blank.");
+                    continue;
+                }
+                if (!Arrays.equals(password, confirmation)) {
+                    JOptionPane.showMessageDialog(null, "Passwords do not match.");
+                    continue;
+                }
 
-            databaseManager.createInitialAdmin(password);
-            return true;
+                databaseManager.createInitialAdmin(password);
+                return true;
+            } finally {
+                Arrays.fill(password, '\0');
+                Arrays.fill(confirmation, '\0');
+                passwordField.setText("");
+                confirmField.setText("");
+            }
         }
+    }
+
+    private static boolean isBlank(char[] value) {
+        for (char character : value) {
+            if (!Character.isWhitespace(character)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

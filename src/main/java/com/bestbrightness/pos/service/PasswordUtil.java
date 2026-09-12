@@ -2,6 +2,7 @@ package com.bestbrightness.pos.service;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HexFormat;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -18,10 +19,17 @@ public final class PasswordUtil {
     }
 
     public static String hashPassword(String password) {
+        return hashPassword(password == null ? null : password.toCharArray());
+    }
+
+    public static String hashPassword(char[] password) {
+        if (password == null) {
+            throw new IllegalArgumentException("Password is required.");
+        }
         try {
             byte[] salt = new byte[SALT_LENGTH];
             SECURE_RANDOM.nextBytes(salt);
-            byte[] hash = deriveKey(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
+            byte[] hash = deriveKey(password, salt, ITERATIONS, KEY_LENGTH);
             return ITERATIONS
                     + "$"
                     + HexFormat.of().formatHex(salt)
@@ -29,10 +37,16 @@ public final class PasswordUtil {
                     + HexFormat.of().formatHex(hash);
         } catch (Exception exception) {
             throw new IllegalStateException("Password hashing is not available.", exception);
+        } finally {
+            Arrays.fill(password, '\0');
         }
     }
 
     public static boolean matches(String rawPassword, String passwordHash) {
+        return matches(rawPassword == null ? null : rawPassword.toCharArray(), passwordHash);
+    }
+
+    public static boolean matches(char[] rawPassword, String passwordHash) {
         if (passwordHash == null || rawPassword == null) {
             return false;
         }
@@ -50,10 +64,12 @@ public final class PasswordUtil {
             if (salt.length != SALT_LENGTH || expectedHash.length != KEY_LENGTH / 8) {
                 return false;
             }
-            byte[] actualHash = deriveKey(rawPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
+            byte[] actualHash = deriveKey(rawPassword, salt, iterations, expectedHash.length * 8);
             return MessageDigest.isEqual(expectedHash, actualHash);
         } catch (RuntimeException exception) {
             return false;
+        } finally {
+            Arrays.fill(rawPassword, '\0');
         }
     }
 

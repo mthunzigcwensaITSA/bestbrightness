@@ -12,7 +12,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PosService {
 
@@ -154,9 +156,14 @@ public class PosService {
     }
 
     private List<SaleItem> normalizeSaleItems(Connection connection, List<SaleItem> items) throws SQLException {
+        Map<Integer, Integer> requestedQuantities = new HashMap<>();
+        for (SaleItem item : items) {
+            requestedQuantities.merge(item.getProductId(), item.getQuantity(), Integer::sum);
+        }
+
         List<SaleItem> normalizedItems = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT product_name, price
+                SELECT product_name, price, quantity
                 FROM products
                 WHERE product_id = ?
                 """)) {
@@ -168,6 +175,9 @@ public class PosService {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (!resultSet.next()) {
                         throw new IllegalArgumentException("Product no longer exists.");
+                    }
+                    if (requestedQuantities.getOrDefault(item.getProductId(), 0) > resultSet.getInt("quantity")) {
+                        throw new IllegalArgumentException("Insufficient stock for " + resultSet.getString("product_name") + ".");
                     }
                     normalizedItems.add(new SaleItem(
                             item.getProductId(),

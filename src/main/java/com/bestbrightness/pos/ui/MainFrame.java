@@ -5,7 +5,6 @@ import com.bestbrightness.pos.model.Sale;
 import com.bestbrightness.pos.model.SaleItem;
 import com.bestbrightness.pos.model.User;
 import com.bestbrightness.pos.service.PosService;
-import com.bestbrightness.pos.service.ReceiptGenerator;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -426,12 +425,10 @@ public class MainFrame extends JFrame {
             cartTableModel.setRowCount(0);
             updateTotals();
             loadProducts();
-            try {
-                receiptArea.setText(ReceiptGenerator.generate(sale));
-            } catch (RuntimeException exception) {
-                receiptArea.setText("Sale completed, but the receipt could not be generated.");
-                JOptionPane.showMessageDialog(this, receiptArea.getText(), "Receipt Warning",
-                        JOptionPane.WARNING_MESSAGE);
+            ReceiptRenderResult receipt = ReceiptRenderer.render(sale);
+            receiptArea.setText(receipt.text());
+            if (receipt.warning()) {
+                JOptionPane.showMessageDialog(this, receipt.text(), "Receipt Warning", JOptionPane.WARNING_MESSAGE);
             }
             JOptionPane.showMessageDialog(this, "Sale completed successfully.");
         } catch (IllegalArgumentException | SQLException exception) {

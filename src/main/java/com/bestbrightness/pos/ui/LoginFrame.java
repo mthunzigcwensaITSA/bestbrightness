@@ -12,6 +12,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.sql.SQLException;
+import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -183,8 +184,9 @@ public class LoginFrame extends JFrame {
     }
 
     private void handleLogin() {
+        char[] password = passwordField.getPassword();
         try {
-            User user = authService.authenticate(usernameField.getText(), new String(passwordField.getPassword()));
+            User user = authService.authenticate(usernameField.getText(), password);
             if (user == null) {
                 JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed",
                         JOptionPane.ERROR_MESSAGE);
@@ -195,6 +197,9 @@ public class LoginFrame extends JFrame {
             new MainFrame(user, posService).setVisible(true);
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            Arrays.fill(password, '\0');
+            passwordField.setText("");
         }
     }
 }

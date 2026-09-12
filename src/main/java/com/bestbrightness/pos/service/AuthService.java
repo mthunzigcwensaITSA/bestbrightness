@@ -16,7 +16,11 @@ public class AuthService {
     }
 
     public User authenticate(String username, String password) throws SQLException {
-        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+        return authenticate(username, password == null ? null : password.toCharArray());
+    }
+
+    public User authenticate(String username, char[] password) throws SQLException {
+        if (username == null || username.isBlank() || password == null || isBlank(password)) {
             return null;
         }
 
@@ -38,5 +42,14 @@ public class AuthService {
                         resultSet.getString("username"));
             }
         }
+    }
+
+    private boolean isBlank(char[] password) {
+        for (char character : password) {
+            if (!Character.isWhitespace(character)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
