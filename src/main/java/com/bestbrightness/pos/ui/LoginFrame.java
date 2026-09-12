@@ -3,6 +3,7 @@ package com.bestbrightness.pos.ui;
 import com.bestbrightness.pos.model.User;
 import com.bestbrightness.pos.service.AuthService;
 import com.bestbrightness.pos.service.PosService;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -21,7 +22,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 public class LoginFrame extends JFrame {
@@ -40,21 +40,15 @@ public class LoginFrame extends JFrame {
     private void initialize() {
         setTitle("Best Brightness POS - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(420, 520));
+        setMinimumSize(new Dimension(780, 500));
 
-        JPanel root = new JPanel();
+        JPanel root = new JPanel(new BorderLayout(18, 0));
         root.setBackground(UiTheme.BACKGROUND);
         root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
-        root.add(createBrandPanel());
-        root.add(Box.createVerticalStrut(18));
-        root.add(createLoginPanel());
-
-        JScrollPane scrollPane = new JScrollPane(root);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        setContentPane(scrollPane);
-        setSize(UiTheme.fitToScreen(760, 760));
+        root.add(createBrandPanel(), BorderLayout.WEST);
+        root.add(createLoginPanel(), BorderLayout.CENTER);
+        setContentPane(root);
+        setSize(UiTheme.fitToScreen(980, 560));
         setLocationRelativeTo(null);
     }
 
@@ -62,8 +56,7 @@ public class LoginFrame extends JFrame {
         JPanel panel = UiTheme.createCard();
         panel.setBackground(UiTheme.SURFACE_ALT);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
+        panel.setPreferredSize(new Dimension(360, 0));
 
         JLabel badge = new JLabel("BB");
         badge.setOpaque(true);
@@ -78,21 +71,22 @@ public class LoginFrame extends JFrame {
         JLabel title = UiTheme.createTitleLabel("Best Brightness");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         javax.swing.JTextArea subtitle = UiTheme.createInfoText(
-                "Modern point of sale operations for cleaning products, cashier workflows, and live stock control.");
-        subtitle.setFont(subtitle.getFont().deriveFont(15f));
+                "Point of sale operations for products, stock, discounts, and receipt handling.");
+        subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(badge);
-        panel.add(Box.createVerticalStrut(24));
+        panel.add(Box.createVerticalStrut(18));
         panel.add(title);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(8));
         panel.add(subtitle);
-        panel.add(Box.createVerticalGlue());
+        panel.add(Box.createVerticalStrut(18));
         panel.add(createFeature("Secure sign-in", "Protected admin access with hashed credentials"));
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(createFeature("Fast checkout", "Cart totals, discounts, and receipts in one flow"));
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(createFeature("Live inventory", "Stock updates immediately after completed sales"));
+        panel.add(Box.createVerticalGlue());
         return panel;
     }
 
@@ -100,13 +94,13 @@ public class LoginFrame extends JFrame {
         JPanel feature = new JPanel();
         feature.setLayout(new BoxLayout(feature, BoxLayout.Y_AXIS));
         feature.setBackground(UiTheme.SURFACE);
-        feature.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+        feature.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         feature.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel titleLabel = UiTheme.createSectionLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 15f));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
         javax.swing.JTextArea descriptionLabel = UiTheme.createInfoText(description);
         feature.add(titleLabel);
-        feature.add(Box.createVerticalStrut(4));
+        feature.add(Box.createVerticalStrut(2));
         feature.add(descriptionLabel);
         return feature;
     }
@@ -114,18 +108,16 @@ public class LoginFrame extends JFrame {
     private JPanel createLoginPanel() {
         JPanel panel = UiTheme.createCard();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 460));
 
         JLabel overline = UiTheme.createMutedLabel("WELCOME BACK");
-        overline.setFont(overline.getFont().deriveFont(Font.BOLD, 13f));
+        overline.setFont(overline.getFont().deriveFont(Font.BOLD, 12f));
         overline.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel title = UiTheme.createTitleLabel("Sign in to your workspace");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 30f));
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         javax.swing.JTextArea subtitle = UiTheme.createInfoText(
-                "Manage products, process sales, and track receipts from a polished desktop experience.");
-        subtitle.setFont(subtitle.getFont().deriveFont(15f));
+                "Manage products, process sales, and view receipt slips from one clean dashboard.");
+        subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         UiTheme.styleField(usernameField);
@@ -176,11 +168,11 @@ public class LoginFrame extends JFrame {
         hint.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(overline);
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(title);
-        panel.add(Box.createVerticalStrut(8));
+        panel.add(Box.createVerticalStrut(6));
         panel.add(subtitle);
-        panel.add(Box.createVerticalStrut(30));
+        panel.add(Box.createVerticalStrut(22));
         panel.add(formPanel);
         panel.add(buttonRow);
         panel.add(Box.createVerticalGlue());

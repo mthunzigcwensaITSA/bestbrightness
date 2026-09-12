@@ -62,14 +62,14 @@ public final class UiTheme {
         panel.setBackground(SURFACE);
         panel.setBorder(new CompoundBorder(
                 BorderFactory.createLineBorder(new Color(71, 85, 105), 1, true),
-                new EmptyBorder(18, 18, 18, 18)));
+                new EmptyBorder(14, 14, 14, 14)));
         return panel;
     }
 
     public static JLabel createTitleLabel(String text) {
         JLabel label = new JLabel(text);
         label.setForeground(TEXT_PRIMARY);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, 28f));
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 24f));
         return label;
     }
 
@@ -100,7 +100,7 @@ public final class UiTheme {
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
-        button.setMargin(new Insets(10, 18, 10, 18));
+        button.setMargin(new Insets(8, 16, 8, 16));
         return button;
     }
 
@@ -111,13 +111,13 @@ public final class UiTheme {
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
-        button.setMargin(new Insets(10, 18, 10, 18));
+        button.setMargin(new Insets(8, 16, 8, 16));
         return button;
     }
 
     public static void styleField(JTextField field) {
-        field.setPreferredSize(new Dimension(220, 40));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        field.setPreferredSize(new Dimension(220, 38));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
     }
 
     public static void styleTextArea(JTextArea textArea) {
@@ -131,7 +131,7 @@ public final class UiTheme {
     }
 
     public static void styleTable(JTable table) {
-        table.setRowHeight(30);
+        table.setRowHeight(28);
         table.setFillsViewportHeight(true);
         table.setBackground(new Color(18, 25, 41));
         table.setForeground(TEXT_PRIMARY);

@@ -1,7 +1,12 @@
 package com.bestbrightness.pos.ui;
 
 import com.bestbrightness.pos.db.DatabaseManager;
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -11,7 +16,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
 
 public class InitialSetupFrame extends JFrame {
 
@@ -29,26 +33,15 @@ public class InitialSetupFrame extends JFrame {
     private void initialize() {
         setTitle("Best Brightness POS - First-Time Setup");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new java.awt.Dimension(420, 520));
+        setMinimumSize(new Dimension(620, 420));
 
-        JPanel content = new JPanel();
-        content.setBackground(UiTheme.BACKGROUND);
-        content.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-
-        JPanel heroCard = UiTheme.createCard();
-        heroCard.setLayout(new BoxLayout(heroCard, BoxLayout.Y_AXIS));
-        heroCard.setAlignmentX(Component.CENTER_ALIGNMENT);
-        heroCard.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 220));
-        heroCard.add(UiTheme.createTitleLabel("Set up Best Brightness"));
-        heroCard.add(Box.createVerticalStrut(10));
-        heroCard.add(UiTheme.createInfoText(
-                "Create the first admin password in this window before signing in to the point of sale system."));
+        JPanel root = new JPanel(new GridBagLayout());
+        root.setBackground(UiTheme.BACKGROUND);
+        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
 
         JPanel formCard = UiTheme.createCard();
-        formCard.setLayout(new BoxLayout(formCard, BoxLayout.Y_AXIS));
-        formCard.setAlignmentX(Component.CENTER_ALIGNMENT);
-        formCard.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 280));
+        formCard.setLayout(new BorderLayout(0, 18));
+        formCard.setPreferredSize(new Dimension(640, 0));
 
         UiTheme.styleField(passwordField);
         UiTheme.styleField(confirmField);
@@ -57,16 +50,36 @@ public class InitialSetupFrame extends JFrame {
         passwordField.addActionListener(event -> createAdmin());
         confirmField.addActionListener(event -> createAdmin());
 
-        formCard.add(UiTheme.createSectionLabel("Admin credentials"));
-        formCard.add(Box.createVerticalStrut(8));
-        formCard.add(UiTheme.createInfoText("The username is fixed as admin for the first sign-in."));
-        formCard.add(Box.createVerticalStrut(20));
-        formCard.add(createFieldBlock("Password", passwordField));
-        formCard.add(Box.createVerticalStrut(12));
-        formCard.add(createFieldBlock("Confirm password", confirmField));
-        formCard.add(Box.createVerticalStrut(18));
+        JPanel top = new JPanel();
+        top.setOpaque(false);
+        top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+        top.add(UiTheme.createTitleLabel("Set up Best Brightness"));
+        top.add(Box.createVerticalStrut(8));
+        top.add(UiTheme.createInfoText(
+                "Create the first admin password here. The username stays fixed as admin for the first sign-in."));
 
-        JPanel buttonRow = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 12, 0));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 1;
+        constraints.insets = new java.awt.Insets(0, 0, 8, 14);
+        formPanel.add(UiTheme.createMutedLabel("Password"), constraints);
+        constraints.gridx = 1;
+        constraints.insets = new java.awt.Insets(0, 0, 8, 0);
+        formPanel.add(UiTheme.createMutedLabel("Confirm password"), constraints);
+        constraints.gridy = 1;
+        constraints.gridx = 0;
+        constraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        formPanel.add(passwordField, constraints);
+        constraints.gridx = 1;
+        constraints.insets = new java.awt.Insets(0, 0, 0, 0);
+        formPanel.add(confirmField, constraints);
+
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         buttonRow.setOpaque(false);
         JButton createButton = UiTheme.createPrimaryButton("Create Admin Account");
         createButton.addActionListener(event -> createAdmin());
@@ -74,30 +87,21 @@ public class InitialSetupFrame extends JFrame {
         exitButton.addActionListener(event -> System.exit(0));
         buttonRow.add(createButton);
         buttonRow.add(exitButton);
-        formCard.add(buttonRow);
 
-        content.add(heroCard);
-        content.add(Box.createVerticalStrut(18));
-        content.add(formCard);
+        JPanel center = new JPanel();
+        center.setOpaque(false);
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+        center.add(formPanel);
+        center.add(Box.createVerticalStrut(18));
+        center.add(buttonRow);
 
-        JScrollPane scrollPane = new JScrollPane(content);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        setContentPane(scrollPane);
-        setSize(UiTheme.fitToScreen(720, 700));
+        formCard.add(top, BorderLayout.NORTH);
+        formCard.add(center, BorderLayout.CENTER);
+
+        root.add(formCard);
+        setContentPane(root);
+        setSize(UiTheme.fitToScreen(760, 430));
         setLocationRelativeTo(null);
-    }
-
-    private JPanel createFieldBlock(String labelText, JPasswordField field) {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(UiTheme.createMutedLabel(labelText));
-        panel.add(Box.createVerticalStrut(6));
-        field.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(field);
-        return panel;
     }
 
     private void createAdmin() {

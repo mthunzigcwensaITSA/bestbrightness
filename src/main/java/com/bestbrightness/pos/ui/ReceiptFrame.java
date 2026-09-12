@@ -21,7 +21,7 @@ public class ReceiptFrame extends JFrame {
     private void initialize() {
         setTitle("Best Brightness POS - Receipt Slip");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setMinimumSize(new java.awt.Dimension(380, 480));
+        setMinimumSize(new java.awt.Dimension(360, 440));
 
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 14));
@@ -46,7 +46,7 @@ public class ReceiptFrame extends JFrame {
         root.add(card, BorderLayout.CENTER);
 
         setContentPane(root);
-        setSize(UiTheme.fitToScreen(560, 700));
+        setSize(UiTheme.fitToScreen(460, 560));
     }
 
     public void showReceipt(Component parent, ReceiptRenderResult receipt) {

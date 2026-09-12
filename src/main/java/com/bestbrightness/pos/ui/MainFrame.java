@@ -27,7 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -79,19 +79,15 @@ public class MainFrame extends JFrame {
     private void initialize(User user) {
         setTitle("Best Brightness POS - Welcome " + user.getUsername());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(820, 600));
-        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(980, 680));
 
         JPanel root = new JPanel(new BorderLayout(0, 20));
         root.setBackground(UiTheme.BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        root.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
         root.add(createHeader(user), BorderLayout.NORTH);
         root.add(createMainContent(), BorderLayout.CENTER);
-        JScrollPane scrollPane = new JScrollPane(root);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        setContentPane(scrollPane);
-        setSize(UiTheme.fitToScreen(1220, 860));
+        setContentPane(root);
+        setSize(UiTheme.fitToScreen(1220, 760));
         setLocationRelativeTo(null);
     }
 
@@ -104,21 +100,20 @@ public class MainFrame extends JFrame {
         left.setOpaque(false);
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
         JLabel eyebrow = UiTheme.createMutedLabel("BEST BRIGHTNESS CONTROL CENTER");
-        eyebrow.setFont(eyebrow.getFont().deriveFont(Font.BOLD, 12f));
+        eyebrow.setFont(eyebrow.getFont().deriveFont(Font.BOLD, 11f));
         JLabel title = UiTheme.createTitleLabel("Point of Sale Dashboard");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 24f));
         JTextArea subtitle = UiTheme.createInfoText(
-                "Premium cashier experience for products, discounts, receipts, and live stock.");
+                "Products, discounts, receipts, and stock control in one compact workspace.");
         left.add(eyebrow);
-        left.add(Box.createVerticalStrut(8));
-        left.add(title);
         left.add(Box.createVerticalStrut(6));
+        left.add(title);
+        left.add(Box.createVerticalStrut(4));
         left.add(subtitle);
 
-        JPanel right = new JPanel();
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         right.setOpaque(false);
-        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
         right.add(createChip("Active User", user.getUsername(), UiTheme.ACCENT));
-        right.add(Box.createVerticalStrut(10));
         right.add(createChip("Discount Rule", "10% from R500", UiTheme.ACCENT_ALT));
 
         panel.add(left, BorderLayout.CENTER);
@@ -132,37 +127,32 @@ public class MainFrame extends JFrame {
         chip.setBackground(UiTheme.SURFACE);
         chip.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(accent, 1, true),
-                BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
         chip.setLayout(new BoxLayout(chip, BoxLayout.Y_AXIS));
         JLabel titleLabel = UiTheme.createMutedLabel(title);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel valueLabel = UiTheme.createSectionLabel(value);
+        valueLabel.setFont(valueLabel.getFont().deriveFont(Font.BOLD, 15f));
         valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         chip.add(titleLabel);
-        chip.add(Box.createVerticalStrut(3));
+        chip.add(Box.createVerticalStrut(2));
         chip.add(valueLabel);
         return chip;
     }
 
     private JPanel createMainContent() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setOpaque(false);
+        panel.add(createMetricStrip(), BorderLayout.NORTH);
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Inventory Studio", createScrollableTab(createProductsPanel()));
-        tabbedPane.addTab("Sales Command", createScrollableTab(createSalesPanel()));
+        tabbedPane.addTab("Inventory Studio", createProductsPanel());
+        tabbedPane.addTab("Sales Command", createSalesPanel());
         panel.add(tabbedPane, BorderLayout.CENTER);
         return panel;
     }
 
-    private JScrollPane createScrollableTab(JPanel panel) {
-        JScrollPane scrollPane = new JScrollPane(panel);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        return scrollPane;
-    }
-
     private JPanel createMetricStrip() {
-        JPanel panel = new JPanel(new GridLayout(0, 1, 0, 12));
+        JPanel panel = new JPanel(new GridLayout(1, 3, 12, 0));
         panel.setOpaque(false);
         panel.add(UiTheme.createMetricCard("Products in catalog", inventoryCountLabel, UiTheme.ACCENT));
         panel.add(UiTheme.createMetricCard("Inventory value", inventoryValueLabel, UiTheme.SUCCESS));
@@ -171,24 +161,17 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createProductsPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout(16, 0));
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(createMetricStrip());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createProductFormCard());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createSectionDivider());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createProductTableCard());
+        panel.add(createProductFormCard(), BorderLayout.WEST);
+        panel.add(createProductTableCard(), BorderLayout.CENTER);
         return panel;
     }
 
     private JPanel createProductFormCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 290));
+        card.setPreferredSize(new Dimension(300, 0));
 
         JLabel title = UiTheme.createSectionLabel("Add inventory");
         JTextArea subtitle = UiTheme.createInfoText("Capture premium products with clean pricing and stock levels.");
@@ -212,7 +195,7 @@ public class MainFrame extends JFrame {
         card.add(createFieldBlock("Unit price (R)", productPriceField));
         card.add(Box.createVerticalStrut(12));
         card.add(createFieldBlock("Stock quantity", productQuantityField));
-        card.add(Box.createVerticalStrut(18));
+        card.add(Box.createVerticalStrut(14));
         addButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(addButton);
         card.add(Box.createVerticalGlue());
@@ -255,30 +238,31 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createSalesPanel() {
-        JPanel panel = new JPanel();
+        JPanel left = new JPanel(new BorderLayout(0, 16));
+        left.setOpaque(false);
+        left.add(createSalesComposerCard(), BorderLayout.NORTH);
+        left.add(createCartCard(), BorderLayout.CENTER);
+
+        JPanel right = new JPanel(new BorderLayout(0, 16));
+        right.setOpaque(false);
+        right.add(createTotalsCard(), BorderLayout.NORTH);
+        right.add(createReceiptCard(), BorderLayout.CENTER);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+        splitPane.setOpaque(false);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.setResizeWeight(0.58);
+        splitPane.setDividerSize(10);
+
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(createSalesComposerCard());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createSectionDivider());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createCartCard());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createSectionDivider());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createTotalsCard());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createSectionDivider());
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(createReceiptCard());
+        panel.add(splitPane, BorderLayout.CENTER);
         return panel;
     }
 
     private JPanel createSalesComposerCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 18));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
 
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
@@ -300,16 +284,19 @@ public class MainFrame extends JFrame {
         form.add(UiTheme.createMutedLabel("Product"), constraints);
         constraints.gridx = 1;
         constraints.insets = new java.awt.Insets(0, 0, 8, 0);
+        constraints.weightx = 0;
         form.add(UiTheme.createMutedLabel("Quantity"), constraints);
 
         constraints.gridy = 1;
         constraints.gridx = 0;
         constraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        constraints.weightx = 1;
         productComboBox.setPreferredSize(new Dimension(320, 42));
         form.add(productComboBox, constraints);
 
         constraints.gridx = 1;
         constraints.insets = new java.awt.Insets(0, 0, 0, 0);
+        constraints.weightx = 0.25;
         UiTheme.styleField(saleQuantityField);
         saleQuantityField.putClientProperty("JTextField.placeholderText", "3");
         form.add(saleQuantityField, constraints);
@@ -333,7 +320,6 @@ public class MainFrame extends JFrame {
     private JPanel createCartCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 14));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
@@ -352,8 +338,7 @@ public class MainFrame extends JFrame {
     private JPanel createTotalsCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 14));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 250));
+        card.setPreferredSize(new Dimension(360, 190));
 
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
@@ -387,7 +372,6 @@ public class MainFrame extends JFrame {
     private JPanel createReceiptCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 14));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
@@ -403,12 +387,6 @@ public class MainFrame extends JFrame {
         card.add(new JScrollPane(receiptArea), BorderLayout.CENTER);
         card.add(openWindowButton, BorderLayout.SOUTH);
         return card;
-    }
-
-    private JSeparator createSectionDivider() {
-        JSeparator separator = new JSeparator();
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        return separator;
     }
 
     private void addProduct() {
