@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import javax.swing.BorderFactory;
@@ -167,6 +168,9 @@ public final class UiTheme {
     }
 
     public static Dimension fitToScreen(int preferredWidth, int preferredHeight) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return new Dimension(preferredWidth, preferredHeight);
+        }
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int width = Math.max(360, Math.min(preferredWidth, screenSize.width - 80));
         int height = Math.max(360, Math.min(preferredHeight, screenSize.height - 80));

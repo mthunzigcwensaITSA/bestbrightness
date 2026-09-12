@@ -20,17 +20,16 @@ public final class BestBrightnessApp {
             DatabaseManager databaseManager = new DatabaseManager(Path.of("bestbrightness.db"));
             databaseManager.initializeDatabase();
             boolean hasUsers = databaseManager.hasUsers();
-            if (!ensureAdminUser(databaseManager, hasUsers)) {
-                return;
-            }
-            AuthService authService = new AuthService(databaseManager);
-            PosService posService = new PosService(databaseManager);
-
             if (GraphicsEnvironment.isHeadless()) {
+                if (!ensureHeadlessAdminUser(databaseManager, hasUsers)) {
+                    return;
+                }
                 System.out.println("Best Brightness POS database initialized.");
                 return;
             }
 
+            AuthService authService = new AuthService(databaseManager);
+            PosService posService = new PosService(databaseManager);
             UiTheme.setup();
             SwingUtilities.invokeLater(() -> launchUi(hasUsers, databaseManager, authService, posService));
         } catch (Exception exception) {
@@ -50,20 +49,17 @@ public final class BestBrightnessApp {
                 .setVisible(true);
     }
 
-    private static boolean ensureAdminUser(DatabaseManager databaseManager, boolean hasUsers) throws Exception {
+    private static boolean ensureHeadlessAdminUser(DatabaseManager databaseManager, boolean hasUsers) throws Exception {
         if (hasUsers) {
             return true;
         }
 
-        if (GraphicsEnvironment.isHeadless()) {
-            String adminPassword = System.getenv("BEST_BRIGHTNESS_ADMIN_PASSWORD");
-            if (adminPassword == null || adminPassword.isBlank()) {
-                System.out.println("No users configured. Set BEST_BRIGHTNESS_ADMIN_PASSWORD and rerun.");
-                return false;
-            }
-            databaseManager.createInitialAdmin(adminPassword);
-            return true;
+        String adminPassword = System.getenv("BEST_BRIGHTNESS_ADMIN_PASSWORD");
+        if (adminPassword == null || adminPassword.isBlank()) {
+            System.out.println("No users configured. Set BEST_BRIGHTNESS_ADMIN_PASSWORD and rerun.");
+            return false;
         }
+        databaseManager.createInitialAdmin(adminPassword);
         return true;
     }
 }
