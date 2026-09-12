@@ -475,7 +475,6 @@ public class MainFrame extends JFrame {
             latestReceipt = receipt;
             receiptArea.setText(receipt.text());
             receiptArea.setCaretPosition(0);
-            receiptFrame.showReceipt(this, receipt);
             if (receipt.warning()) {
                 JOptionPane.showMessageDialog(this,
                         "Sale completed successfully, but the generated slip used the fallback receipt text.",
@@ -484,6 +483,7 @@ public class MainFrame extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Sale completed successfully. The receipt slip opened in a new window.");
             }
+            receiptFrame.showReceipt(this, receipt);
         } catch (IllegalArgumentException | SQLException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Sale Error", JOptionPane.ERROR_MESSAGE);
         }
