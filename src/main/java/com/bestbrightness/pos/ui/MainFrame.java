@@ -27,10 +27,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
@@ -66,6 +68,10 @@ public class MainFrame extends JFrame {
     private final JLabel inventoryValueLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel lowStockLabel = UiTheme.createMetricValue("0");
     private final JTextArea receiptArea = new JTextArea(12, 32);
+    private final JTable productTable = new JTable(productTableModel);
+    private final JTable cartTable = new JTable(cartTableModel);
+    private final ReceiptFrame receiptFrame = new ReceiptFrame();
+    private ReceiptRenderResult latestReceipt;
 
     public MainFrame(User user, PosService posService) {
         this.posService = posService;
@@ -76,16 +82,31 @@ public class MainFrame extends JFrame {
     private void initialize(User user) {
         setTitle("Best Brightness POS - Welcome " + user.getUsername());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1320, 820);
-        setMinimumSize(new Dimension(1180, 760));
-        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(980, 680));
+        configureComponents();
 
         JPanel root = new JPanel(new BorderLayout(0, 20));
         root.setBackground(UiTheme.BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        root.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
         root.add(createHeader(user), BorderLayout.NORTH);
         root.add(createMainContent(), BorderLayout.CENTER);
         setContentPane(root);
+        setSize(UiTheme.fitToScreen(1220, 760));
+        setLocationRelativeTo(null);
+    }
+
+    private void configureComponents() {
+        UiTheme.styleComboBox(productComboBox);
+        UiTheme.styleField(saleQuantityField);
+        UiTheme.styleTextArea(receiptArea);
+        receiptArea.setEditable(false);
+        receiptArea.setText("Complete a sale to preview the generated receipt slip here.");
+
+        UiTheme.styleTable(productTable);
+        UiTheme.styleTable(cartTable);
+        productTable.setAutoCreateRowSorter(true);
+        productTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        cartTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     private JPanel createHeader(User user) {
@@ -97,16 +118,18 @@ public class MainFrame extends JFrame {
         left.setOpaque(false);
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
         JLabel eyebrow = UiTheme.createMutedLabel("BEST BRIGHTNESS CONTROL CENTER");
-        eyebrow.setFont(eyebrow.getFont().deriveFont(Font.BOLD, 12f));
+        eyebrow.setFont(eyebrow.getFont().deriveFont(Font.BOLD, 11f));
         JLabel title = UiTheme.createTitleLabel("Point of Sale Dashboard");
-        JLabel subtitle = UiTheme.createMutedLabel("Premium cashier experience for products, discounts, receipts, and live stock.");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 24f));
+        JTextArea subtitle = UiTheme.createInfoText(
+                "Products, discounts, receipts, and stock control in one compact workspace.");
         left.add(eyebrow);
-        left.add(Box.createVerticalStrut(8));
-        left.add(title);
         left.add(Box.createVerticalStrut(6));
+        left.add(title);
+        left.add(Box.createVerticalStrut(4));
         left.add(subtitle);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         right.setOpaque(false);
         right.add(createChip("Active User", user.getUsername(), UiTheme.ACCENT));
         right.add(createChip("Discount Rule", "10% from R500", UiTheme.ACCENT_ALT));
@@ -122,23 +145,23 @@ public class MainFrame extends JFrame {
         chip.setBackground(UiTheme.SURFACE);
         chip.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(accent, 1, true),
-                BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)));
         chip.setLayout(new BoxLayout(chip, BoxLayout.Y_AXIS));
         JLabel titleLabel = UiTheme.createMutedLabel(title);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel valueLabel = UiTheme.createSectionLabel(value);
+        valueLabel.setFont(valueLabel.getFont().deriveFont(Font.BOLD, 15f));
         valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         chip.add(titleLabel);
-        chip.add(Box.createVerticalStrut(3));
+        chip.add(Box.createVerticalStrut(2));
         chip.add(valueLabel);
         return chip;
     }
 
     private JPanel createMainContent() {
-        JPanel panel = new JPanel(new BorderLayout(0, 18));
+        JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setOpaque(false);
         panel.add(createMetricStrip(), BorderLayout.NORTH);
-
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Inventory Studio", createProductsPanel());
         tabbedPane.addTab("Sales Command", createSalesPanel());
@@ -147,7 +170,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createMetricStrip() {
-        JPanel panel = new JPanel(new GridLayout(1, 3, 16, 0));
+        JPanel panel = new JPanel(new GridLayout(1, 3, 12, 0));
         panel.setOpaque(false);
         panel.add(UiTheme.createMetricCard("Products in catalog", inventoryCountLabel, UiTheme.ACCENT));
         panel.add(UiTheme.createMetricCard("Inventory value", inventoryValueLabel, UiTheme.SUCCESS));
@@ -156,20 +179,22 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createProductsPanel() {
-        JPanel panel = new JPanel(new BorderLayout(18, 18));
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createProductFormCard(), createProductTableCard());
+        UiTheme.styleSplitPane(splitPane, 0.30);
+
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.add(createProductFormCard(), BorderLayout.WEST);
-        panel.add(createProductTableCard(), BorderLayout.CENTER);
+        panel.add(splitPane, BorderLayout.CENTER);
         return panel;
     }
 
     private JPanel createProductFormCard() {
         JPanel card = UiTheme.createCard();
-        card.setPreferredSize(new Dimension(360, 0));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setPreferredSize(new Dimension(300, 0));
 
         JLabel title = UiTheme.createSectionLabel("Add inventory");
-        JLabel subtitle = UiTheme.createMutedLabel("Capture premium products with clean pricing and stock levels.");
+        JTextArea subtitle = UiTheme.createInfoText("Capture premium products with clean pricing and stock levels.");
 
         UiTheme.styleField(productNameField);
         UiTheme.styleField(productPriceField);
@@ -190,9 +215,11 @@ public class MainFrame extends JFrame {
         card.add(createFieldBlock("Unit price (R)", productPriceField));
         card.add(Box.createVerticalStrut(12));
         card.add(createFieldBlock("Stock quantity", productQuantityField));
-        card.add(Box.createVerticalStrut(18));
+        card.add(Box.createVerticalStrut(14));
         addButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(addButton);
+        card.add(Box.createVerticalStrut(8));
+        card.add(UiTheme.createInfoText("Add products here, then review the catalog table on the right."));
         card.add(Box.createVerticalGlue());
         return card;
     }
@@ -214,8 +241,9 @@ public class MainFrame extends JFrame {
     private JPanel createProductTableCard() {
         JPanel card = UiTheme.createCard();
         card.setLayout(new BorderLayout(0, 14));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel title = UiTheme.createSectionLabel("Inventory overview");
-        JLabel subtitle = UiTheme.createMutedLabel("Review available products, pricing, and current stock levels.");
+        JTextArea subtitle = UiTheme.createInfoText("Review available products, pricing, and current stock levels.");
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
@@ -223,30 +251,33 @@ public class MainFrame extends JFrame {
         titlePanel.add(Box.createVerticalStrut(4));
         titlePanel.add(subtitle);
 
-        JTable table = new JTable(productTableModel);
-        UiTheme.styleTable(table);
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        footer.setOpaque(false);
+        footer.add(UiTheme.createMutedLabel("Products update automatically after every save."));
 
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(productTable), BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
         return card;
     }
 
     private JPanel createSalesPanel() {
-        JPanel panel = new JPanel(new BorderLayout(18, 18));
-        panel.setOpaque(false);
-
-        JPanel left = new JPanel(new BorderLayout(0, 18));
+        JPanel left = new JPanel(new BorderLayout(0, 16));
         left.setOpaque(false);
         left.add(createSalesComposerCard(), BorderLayout.NORTH);
         left.add(createCartCard(), BorderLayout.CENTER);
 
-        JPanel right = new JPanel(new BorderLayout(0, 18));
+        JPanel right = new JPanel(new BorderLayout(0, 16));
         right.setOpaque(false);
         right.add(createTotalsCard(), BorderLayout.NORTH);
         right.add(createReceiptCard(), BorderLayout.CENTER);
 
-        panel.add(left, BorderLayout.CENTER);
-        panel.add(right, BorderLayout.EAST);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+        UiTheme.styleSplitPane(splitPane, 0.58);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.add(splitPane, BorderLayout.CENTER);
         return panel;
     }
 
@@ -259,7 +290,7 @@ public class MainFrame extends JFrame {
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.add(UiTheme.createSectionLabel("Compose sale"));
         titlePanel.add(Box.createVerticalStrut(4));
-        titlePanel.add(UiTheme.createMutedLabel("Build the cart with product selection and quantity validation."));
+        titlePanel.add(UiTheme.createInfoText("Build the cart with product selection and quantity validation."));
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -274,17 +305,19 @@ public class MainFrame extends JFrame {
         form.add(UiTheme.createMutedLabel("Product"), constraints);
         constraints.gridx = 1;
         constraints.insets = new java.awt.Insets(0, 0, 8, 0);
+        constraints.weightx = 0;
         form.add(UiTheme.createMutedLabel("Quantity"), constraints);
 
         constraints.gridy = 1;
         constraints.gridx = 0;
         constraints.insets = new java.awt.Insets(0, 0, 0, 14);
+        constraints.weightx = 1;
         productComboBox.setPreferredSize(new Dimension(320, 42));
         form.add(productComboBox, constraints);
 
         constraints.gridx = 1;
         constraints.insets = new java.awt.Insets(0, 0, 0, 0);
-        UiTheme.styleField(saleQuantityField);
+        constraints.weightx = 0.25;
         saleQuantityField.putClientProperty("JTextField.placeholderText", "3");
         form.add(saleQuantityField, constraints);
 
@@ -297,6 +330,7 @@ public class MainFrame extends JFrame {
         buttonRow.setOpaque(false);
         buttonRow.add(addToCartButton);
         buttonRow.add(completeSaleButton);
+        buttonRow.add(UiTheme.createMutedLabel("Select an item and quantity, then add it to the cart."));
 
         card.add(titlePanel, BorderLayout.NORTH);
         card.add(form, BorderLayout.CENTER);
@@ -312,27 +346,34 @@ public class MainFrame extends JFrame {
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.add(UiTheme.createSectionLabel("Cart overview"));
         titlePanel.add(Box.createVerticalStrut(4));
-        titlePanel.add(UiTheme.createMutedLabel("Track the selected items before the final checkout action."));
+        titlePanel.add(UiTheme.createInfoText("Track the selected items before the final checkout action."));
 
-        JTable table = new JTable(cartTableModel);
-        UiTheme.styleTable(table);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        actions.setOpaque(false);
+        JButton removeButton = UiTheme.createSecondaryButton("Remove Selected");
+        removeButton.addActionListener(event -> removeSelectedCartItem());
+        JButton clearButton = UiTheme.createSecondaryButton("Clear Cart");
+        clearButton.addActionListener(event -> clearCart());
+        actions.add(removeButton);
+        actions.add(clearButton);
 
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(cartTable), BorderLayout.CENTER);
+        card.add(actions, BorderLayout.SOUTH);
         return card;
     }
 
     private JPanel createTotalsCard() {
         JPanel card = UiTheme.createCard();
-        card.setPreferredSize(new Dimension(360, 250));
         card.setLayout(new BorderLayout(0, 14));
+        card.setPreferredSize(new Dimension(360, 190));
 
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.add(UiTheme.createSectionLabel("Checkout totals"));
         titlePanel.add(Box.createVerticalStrut(4));
-        titlePanel.add(UiTheme.createMutedLabel("Instant discount visibility and final pricing summary."));
+        titlePanel.add(UiTheme.createInfoText("Instant discount visibility and final pricing summary."));
 
         JPanel metrics = new JPanel(new GridLayout(3, 1, 0, 12));
         metrics.setOpaque(false);
@@ -358,18 +399,19 @@ public class MainFrame extends JFrame {
 
     private JPanel createReceiptCard() {
         JPanel card = UiTheme.createCard();
-        card.setPreferredSize(new Dimension(360, 0));
         card.setLayout(new BorderLayout(0, 14));
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.add(UiTheme.createSectionLabel("Digital receipt"));
         titlePanel.add(Box.createVerticalStrut(4));
-        titlePanel.add(UiTheme.createMutedLabel("The latest transaction receipt appears here after checkout."));
+        titlePanel.add(UiTheme.createInfoText("The latest transaction receipt appears here after checkout."));
 
-        UiTheme.styleTextArea(receiptArea);
+        JButton openWindowButton = UiTheme.createSecondaryButton("Open Receipt Window");
+        openWindowButton.addActionListener(event -> openReceiptWindow());
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(receiptArea), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(receiptArea), BorderLayout.CENTER);
+        card.add(openWindowButton, BorderLayout.SOUTH);
         return card;
     }
 
@@ -434,15 +476,18 @@ public class MainFrame extends JFrame {
             updateTotals();
             loadProducts();
             ReceiptRenderResult receipt = ReceiptRenderer.render(sale);
+            latestReceipt = receipt;
             receiptArea.setText(receipt.text());
+            receiptArea.setCaretPosition(0);
             if (receipt.warning()) {
                 JOptionPane.showMessageDialog(this,
-                        "Sale completed successfully, but the receipt could not be generated.",
+                        "Sale completed successfully, but the generated slip used the fallback receipt text.",
                         "Receipt Warning",
                         JOptionPane.WARNING_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, "Sale completed successfully.");
+                JOptionPane.showMessageDialog(this, "Sale completed successfully. The receipt slip opened in a new window.");
             }
+            receiptFrame.showReceipt(this, receipt);
         } catch (IllegalArgumentException | SQLException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Sale Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -488,6 +533,31 @@ public class MainFrame extends JFrame {
         finalTotalLabel.setText(String.format("R%.2f", total - discount));
     }
 
+    private void removeSelectedCartItem() {
+        int selectedRow = cartTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Select an item in the cart first.",
+                    "Cart Selection", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int modelRow = cartTable.convertRowIndexToModel(selectedRow);
+        cartItems.remove(modelRow);
+        cartTableModel.removeRow(modelRow);
+        updateTotals();
+    }
+
+    private void clearCart() {
+        if (cartItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The cart is already empty.",
+                    "Cart Empty", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        cartItems.clear();
+        cartTableModel.setRowCount(0);
+        updateTotals();
+    }
+
     private int findCartRowByProduct(int productId) {
         for (int index = 0; index < cartItems.size(); index++) {
             if (cartItems.get(index).getProductId() == productId) {
@@ -495,5 +565,14 @@ public class MainFrame extends JFrame {
             }
         }
         return -1;
+    }
+
+    private void openReceiptWindow() {
+        if (latestReceipt == null) {
+            JOptionPane.showMessageDialog(this, "Complete a sale first to generate a receipt slip.",
+                    "Receipt Unavailable", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        receiptFrame.showReceipt(this, latestReceipt);
     }
 }

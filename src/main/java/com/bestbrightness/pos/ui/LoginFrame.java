@@ -6,7 +6,6 @@ import com.bestbrightness.pos.service.PosService;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,7 +22,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 public class LoginFrame extends JFrame {
 
@@ -41,29 +39,28 @@ public class LoginFrame extends JFrame {
     private void initialize() {
         setTitle("Best Brightness POS - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1040, 640);
-        setMinimumSize(new Dimension(960, 600));
-        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(780, 500));
 
-        JPanel root = new JPanel(new BorderLayout());
+        JPanel root = new JPanel(new BorderLayout(18, 0));
         root.setBackground(UiTheme.BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(28, 28, 28, 28));
+        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         root.add(createBrandPanel(), BorderLayout.WEST);
         root.add(createLoginPanel(), BorderLayout.CENTER);
         setContentPane(root);
+        setSize(UiTheme.fitToScreen(980, 560));
+        setLocationRelativeTo(null);
     }
 
     private JPanel createBrandPanel() {
         JPanel panel = UiTheme.createCard();
-        panel.setPreferredSize(new Dimension(420, 0));
         panel.setBackground(UiTheme.SURFACE_ALT);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setPreferredSize(new Dimension(360, 0));
 
         JLabel badge = new JLabel("BB");
         badge.setOpaque(true);
         badge.setBackground(UiTheme.ACCENT);
         badge.setForeground(UiTheme.BACKGROUND);
-        badge.setHorizontalAlignment(SwingConstants.CENTER);
         badge.setFont(badge.getFont().deriveFont(Font.BOLD, 34f));
         badge.setMaximumSize(new Dimension(88, 88));
         badge.setPreferredSize(new Dimension(88, 88));
@@ -72,21 +69,25 @@ public class LoginFrame extends JFrame {
 
         JLabel title = UiTheme.createTitleLabel("Best Brightness");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitle = UiTheme.createMutedLabel("Modern point of sale operations for cleaning products, cashier workflows, and live stock control.");
-        subtitle.setFont(subtitle.getFont().deriveFont(15f));
+        javax.swing.JTextArea subtitle = UiTheme.createInfoText(
+                "Point of sale operations for products, stock, discounts, and receipt handling.");
+        subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(badge);
-        panel.add(Box.createVerticalStrut(24));
+        panel.add(Box.createVerticalStrut(18));
         panel.add(title);
-        panel.add(Box.createVerticalStrut(10));
+        panel.add(Box.createVerticalStrut(8));
         panel.add(subtitle);
-        panel.add(Box.createVerticalGlue());
+        panel.add(Box.createVerticalStrut(18));
         panel.add(createFeature("Secure sign-in", "Protected admin access with hashed credentials"));
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(createFeature("Fast checkout", "Cart totals, discounts, and receipts in one flow"));
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(createFeature("Live inventory", "Stock updates immediately after completed sales"));
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(createFeature("Simple workspace", "Compact frames that stay visible without page scrolling"));
+        panel.add(Box.createVerticalGlue());
         return panel;
     }
 
@@ -94,39 +95,38 @@ public class LoginFrame extends JFrame {
         JPanel feature = new JPanel();
         feature.setLayout(new BoxLayout(feature, BoxLayout.Y_AXIS));
         feature.setBackground(UiTheme.SURFACE);
-        feature.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+        feature.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         feature.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel titleLabel = UiTheme.createSectionLabel(title);
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 15f));
-        JLabel descriptionLabel = UiTheme.createMutedLabel(description);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
+        javax.swing.JTextArea descriptionLabel = UiTheme.createInfoText(description);
         feature.add(titleLabel);
-        feature.add(Box.createVerticalStrut(4));
+        feature.add(Box.createVerticalStrut(2));
         feature.add(descriptionLabel);
         return feature;
     }
 
     private JPanel createLoginPanel() {
-        JPanel wrapper = new JPanel(new GridBagLayout());
-        wrapper.setOpaque(false);
-
         JPanel panel = UiTheme.createCard();
-        panel.setPreferredSize(new Dimension(420, 480));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel overline = UiTheme.createMutedLabel("WELCOME BACK");
-        overline.setFont(overline.getFont().deriveFont(Font.BOLD, 13f));
+        overline.setFont(overline.getFont().deriveFont(Font.BOLD, 12f));
         overline.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel title = UiTheme.createTitleLabel("Sign in to your workspace");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 30f));
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 26f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitle = UiTheme.createMutedLabel("Manage products, process sales, and track receipts from a polished desktop experience.");
-        subtitle.setFont(subtitle.getFont().deriveFont(15f));
+        javax.swing.JTextArea subtitle = UiTheme.createInfoText(
+                "Manage products, process sales, and view receipt slips from one clean dashboard.");
+        subtitle.setFont(subtitle.getFont().deriveFont(14f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         UiTheme.styleField(usernameField);
         UiTheme.styleField(passwordField);
         usernameField.putClientProperty("JTextField.placeholderText", "Enter your username");
         passwordField.putClientProperty("JTextField.placeholderText", "Enter your password");
+        usernameField.addActionListener(event -> handleLogin());
+        passwordField.addActionListener(event -> handleLogin());
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
@@ -151,36 +151,46 @@ public class LoginFrame extends JFrame {
 
         JButton loginButton = UiTheme.createPrimaryButton("Open POS Dashboard");
         loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         loginButton.addActionListener(event -> handleLogin());
 
         JButton clearButton = UiTheme.createSecondaryButton("Clear");
+        clearButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         clearButton.addActionListener(event -> {
             usernameField.setText("");
             passwordField.setText("");
         });
 
-        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel buttonRow = new JPanel(new GridBagLayout());
         buttonRow.setOpaque(false);
-        buttonRow.add(loginButton);
-        buttonRow.add(clearButton);
         buttonRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        GridBagConstraints buttonConstraints = new GridBagConstraints();
+        buttonConstraints.gridx = 0;
+        buttonConstraints.gridy = 0;
+        buttonConstraints.weightx = 1;
+        buttonConstraints.fill = GridBagConstraints.HORIZONTAL;
+        buttonConstraints.insets = new Insets(0, 0, 0, 8);
+        buttonRow.add(loginButton, buttonConstraints);
+        buttonConstraints.gridx = 1;
+        buttonConstraints.weightx = 0;
+        buttonConstraints.insets = new Insets(0, 0, 0, 0);
+        buttonRow.add(clearButton, buttonConstraints);
 
         JLabel hint = UiTheme.createMutedLabel("Use the admin username with the password created during first-time setup.");
         hint.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(overline);
-        panel.add(Box.createVerticalStrut(12));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(title);
-        panel.add(Box.createVerticalStrut(8));
+        panel.add(Box.createVerticalStrut(6));
         panel.add(subtitle);
-        panel.add(Box.createVerticalStrut(30));
+        panel.add(Box.createVerticalStrut(22));
         panel.add(formPanel);
         panel.add(buttonRow);
         panel.add(Box.createVerticalGlue());
         panel.add(hint);
 
-        wrapper.add(panel);
-        return wrapper;
+        return panel;
     }
 
     private void handleLogin() {

@@ -6,12 +6,17 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -60,14 +65,14 @@ public final class UiTheme {
         panel.setBackground(SURFACE);
         panel.setBorder(new CompoundBorder(
                 BorderFactory.createLineBorder(new Color(71, 85, 105), 1, true),
-                new EmptyBorder(18, 18, 18, 18)));
+                new EmptyBorder(14, 14, 14, 14)));
         return panel;
     }
 
     public static JLabel createTitleLabel(String text) {
         JLabel label = new JLabel(text);
         label.setForeground(TEXT_PRIMARY);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, 28f));
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 24f));
         return label;
     }
 
@@ -98,7 +103,7 @@ public final class UiTheme {
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
-        button.setMargin(new Insets(10, 18, 10, 18));
+        button.setMargin(new Insets(8, 16, 8, 16));
         return button;
     }
 
@@ -109,34 +114,60 @@ public final class UiTheme {
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
-        button.setMargin(new Insets(10, 18, 10, 18));
+        button.setMargin(new Insets(8, 16, 8, 16));
         return button;
     }
 
     public static void styleField(JTextField field) {
-        field.setPreferredSize(new Dimension(220, 40));
+        field.setPreferredSize(new Dimension(220, 38));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
     }
 
     public static void styleTextArea(JTextArea textArea) {
         textArea.setBackground(new Color(18, 25, 41));
         textArea.setForeground(TEXT_PRIMARY);
         textArea.setCaretColor(TEXT_PRIMARY);
-        textArea.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+        textArea.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
     }
 
+    public static void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setPreferredSize(new Dimension(220, 38));
+        comboBox.setMaximumRowCount(12);
+    }
+
     public static void styleTable(JTable table) {
-        table.setRowHeight(30);
+        table.setRowHeight(28);
         table.setFillsViewportHeight(true);
         table.setBackground(new Color(18, 25, 41));
         table.setForeground(TEXT_PRIMARY);
         table.setSelectionBackground(ACCENT_ALT);
         table.setSelectionForeground(TEXT_PRIMARY);
+        table.setIntercellSpacing(new Dimension(0, 1));
+        table.setShowGrid(false);
         table.getTableHeader().setBackground(SURFACE_ALT);
         table.getTableHeader().setForeground(TEXT_PRIMARY);
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD));
+        table.getTableHeader().setReorderingAllowed(false);
+    }
+
+    public static JScrollPane createScrollPane(Component component) {
+        JScrollPane scrollPane = new JScrollPane(component);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(SURFACE);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        return scrollPane;
+    }
+
+    public static void styleSplitPane(JSplitPane splitPane, double resizeWeight) {
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.setOpaque(false);
+        splitPane.setContinuousLayout(true);
+        splitPane.setResizeWeight(resizeWeight);
+        splitPane.setDividerSize(10);
     }
 
     public static JPanel createMetricCard(String labelText, JLabel valueLabel, Color accentColor) {
@@ -150,6 +181,28 @@ public final class UiTheme {
         card.add(valueLabel, java.awt.BorderLayout.CENTER);
         card.add(createMutedLabel(labelText), java.awt.BorderLayout.SOUTH);
         return card;
+    }
+
+    public static JTextArea createInfoText(String text) {
+        JTextArea textArea = new JTextArea(text);
+        textArea.setEditable(false);
+        textArea.setFocusable(false);
+        textArea.setOpaque(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setForeground(TEXT_SECONDARY);
+        textArea.setBorder(BorderFactory.createEmptyBorder());
+        return textArea;
+    }
+
+    public static Dimension fitToScreen(int preferredWidth, int preferredHeight) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return new Dimension(preferredWidth, preferredHeight);
+        }
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = Math.max(360, Math.min(preferredWidth, screenSize.width - 80));
+        int height = Math.max(360, Math.min(preferredHeight, screenSize.height - 80));
+        return new Dimension(width, height);
     }
 
     public static void setContentPadding(JComponent component) {
