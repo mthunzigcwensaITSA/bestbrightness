@@ -4,6 +4,7 @@ import com.bestbrightness.pos.db.DatabaseManager;
 import com.bestbrightness.pos.service.AuthService;
 import com.bestbrightness.pos.service.PosService;
 import com.bestbrightness.pos.ui.LoginFrame;
+import com.bestbrightness.pos.ui.UiTheme;
 import java.awt.GraphicsEnvironment;
 import java.nio.file.Path;
 import javax.swing.JOptionPane;
@@ -30,6 +31,7 @@ public final class BestBrightnessApp {
                 return;
             }
 
+            UiTheme.setup();
             SwingUtilities.invokeLater(() -> new LoginFrame(authService, posService).setVisible(true));
         } catch (Exception exception) {
             exception.printStackTrace();
