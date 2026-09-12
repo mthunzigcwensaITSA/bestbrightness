@@ -396,17 +396,25 @@ public class MainFrame extends JFrame {
         try {
             Product product = (Product) productComboBox.getSelectedItem();
             int quantity = Integer.parseInt(saleQuantityField.getText().trim());
-            int cartQuantity = getCartQuantityForProduct(product == null ? 0 : product.getId());
-            if (product != null && cartQuantity + quantity > product.getQuantity()) {
+            int existingRow = findCartRowByProduct(product == null ? 0 : product.getId());
+            int currentQuantity = existingRow >= 0 ? cartItems.get(existingRow).getQuantity() : 0;
+            if (product != null && currentQuantity + quantity > product.getQuantity()) {
                 throw new IllegalArgumentException("Requested quantity exceeds stock.");
             }
-            SaleItem item = posService.createSaleItem(product, quantity);
-            cartItems.add(item);
-            cartTableModel.addRow(new Object[]{
-                    item.getProductName(),
-                    item.getQuantity(),
-                    String.format("R%.2f", item.getSubtotal())
-            });
+            SaleItem item = posService.createSaleItem(product, currentQuantity + quantity);
+            if (existingRow >= 0) {
+                cartItems.set(existingRow, item);
+                cartTableModel.setValueAt(item.getProductName(), existingRow, 0);
+                cartTableModel.setValueAt(item.getQuantity(), existingRow, 1);
+                cartTableModel.setValueAt(String.format("R%.2f", item.getSubtotal()), existingRow, 2);
+            } else {
+                cartItems.add(item);
+                cartTableModel.addRow(new Object[]{
+                        item.getProductName(),
+                        item.getQuantity(),
+                        String.format("R%.2f", item.getSubtotal())
+                });
+            }
             saleQuantityField.setText("");
             updateTotals();
         } catch (NumberFormatException exception) {
@@ -428,9 +436,13 @@ public class MainFrame extends JFrame {
             ReceiptRenderResult receipt = ReceiptRenderer.render(sale);
             receiptArea.setText(receipt.text());
             if (receipt.warning()) {
-                JOptionPane.showMessageDialog(this, receipt.text(), "Receipt Warning", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Sale completed successfully, but the receipt could not be generated.",
+                        "Receipt Warning",
+                        JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Sale completed successfully.");
             }
-            JOptionPane.showMessageDialog(this, "Sale completed successfully.");
         } catch (IllegalArgumentException | SQLException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Sale Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -476,10 +488,12 @@ public class MainFrame extends JFrame {
         finalTotalLabel.setText(String.format("R%.2f", total - discount));
     }
 
-    private int getCartQuantityForProduct(int productId) {
-        return cartItems.stream()
-                .filter(item -> item.getProductId() == productId)
-                .mapToInt(SaleItem::getQuantity)
-                .sum();
+    private int findCartRowByProduct(int productId) {
+        for (int index = 0; index < cartItems.size(); index++) {
+            if (cartItems.get(index).getProductId() == productId) {
+                return index;
+            }
+        }
+        return -1;
     }
 }

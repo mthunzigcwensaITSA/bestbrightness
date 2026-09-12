@@ -1,9 +1,11 @@
 package com.bestbrightness.pos.service;
 
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.security.spec.InvalidKeySpecException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
@@ -66,20 +68,19 @@ public final class PasswordUtil {
             }
             byte[] actualHash = deriveKey(rawPassword, salt, iterations, expectedHash.length * 8);
             return MessageDigest.isEqual(expectedHash, actualHash);
-        } catch (RuntimeException exception) {
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException | RuntimeException exception) {
             return false;
         } finally {
             Arrays.fill(rawPassword, '\0');
         }
     }
 
-    private static byte[] deriveKey(char[] password, byte[] salt, int iterations, int keyLength) {
+    private static byte[] deriveKey(char[] password, byte[] salt, int iterations, int keyLength)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             return factory.generateSecret(spec).getEncoded();
-        } catch (Exception exception) {
-            throw new IllegalStateException("PBKDF2WithHmacSHA256 is not available.", exception);
         } finally {
             spec.clearPassword();
         }
