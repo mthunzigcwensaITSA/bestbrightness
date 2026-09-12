@@ -85,6 +85,48 @@ public class PosService {
         return new SaleItem(product.getId(), product.getName(), quantity, product.getPrice() * quantity);
     }
 
+    public Product restockProduct(int productId, int amount) throws SQLException {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Restock quantity must be greater than zero.");
+        }
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     UPDATE products
+                     SET quantity = quantity + ?
+                     WHERE product_id = ?
+                     """)) {
+            statement.setInt(1, amount);
+            statement.setInt(2, productId);
+            if (statement.executeUpdate() == 0) {
+                throw new IllegalArgumentException("Product no longer exists.");
+            }
+        }
+
+        return getProductById(productId);
+    }
+
+    private Product getProductById(int productId) throws SQLException {
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT product_id, product_name, price, quantity
+                     FROM products
+                     WHERE product_id = ?
+                     """)) {
+            statement.setInt(1, productId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new IllegalArgumentException("Product no longer exists.");
+                }
+                return new Product(
+                        resultSet.getInt("product_id"),
+                        resultSet.getString("product_name"),
+                        resultSet.getDouble("price"),
+                        resultSet.getInt("quantity"));
+            }
+        }
+    }
+
     public double calculateDiscount(double total) {
         return total >= DISCOUNT_THRESHOLD ? total * DISCOUNT_RATE : 0.0;
     }

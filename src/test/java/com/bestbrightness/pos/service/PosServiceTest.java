@@ -120,4 +120,28 @@ class PosServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> posService.completeSale(List.of(item)));
     }
+
+    @Test
+    void restocksExistingProduct() throws Exception {
+        Product bleach = posService.addProduct("Bleach", 250.0, 5);
+
+        Product restocked = posService.restockProduct(bleach.getId(), 15);
+
+        assertEquals(20, restocked.getQuantity());
+        List<Product> products = posService.getProducts();
+        Product updatedBleach = products.stream().filter(product -> product.getId() == bleach.getId()).findFirst().orElseThrow();
+        assertEquals(20, updatedBleach.getQuantity());
+    }
+
+    @Test
+    void rejectsNonPositiveRestockAmount() throws Exception {
+        Product bleach = posService.addProduct("Bleach", 250.0, 5);
+
+        assertThrows(IllegalArgumentException.class, () -> posService.restockProduct(bleach.getId(), 0));
+    }
+
+    @Test
+    void rejectsRestockForMissingProduct() {
+        assertThrows(IllegalArgumentException.class, () -> posService.restockProduct(999, 10));
+    }
 }
