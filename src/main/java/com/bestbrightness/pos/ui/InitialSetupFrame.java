@@ -2,7 +2,6 @@ package com.bestbrightness.pos.ui;
 
 import com.bestbrightness.pos.db.DatabaseManager;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -57,6 +56,8 @@ public class InitialSetupFrame extends JFrame {
         top.add(Box.createVerticalStrut(8));
         top.add(UiTheme.createInfoText(
                 "Create the first admin password here. The username stays fixed as admin for the first sign-in."));
+        top.add(Box.createVerticalStrut(10));
+        top.add(UiTheme.createInfoText("This setup screen is part of the desktop flow and opens only once."));
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);

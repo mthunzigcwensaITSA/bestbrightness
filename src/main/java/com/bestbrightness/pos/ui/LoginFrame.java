@@ -6,7 +6,6 @@ import com.bestbrightness.pos.service.PosService;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -86,6 +85,8 @@ public class LoginFrame extends JFrame {
         panel.add(createFeature("Fast checkout", "Cart totals, discounts, and receipts in one flow"));
         panel.add(Box.createVerticalStrut(10));
         panel.add(createFeature("Live inventory", "Stock updates immediately after completed sales"));
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(createFeature("Simple workspace", "Compact frames that stay visible without page scrolling"));
         panel.add(Box.createVerticalGlue());
         return panel;
     }
@@ -150,19 +151,30 @@ public class LoginFrame extends JFrame {
 
         JButton loginButton = UiTheme.createPrimaryButton("Open POS Dashboard");
         loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         loginButton.addActionListener(event -> handleLogin());
 
         JButton clearButton = UiTheme.createSecondaryButton("Clear");
+        clearButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         clearButton.addActionListener(event -> {
             usernameField.setText("");
             passwordField.setText("");
         });
 
-        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel buttonRow = new JPanel(new GridBagLayout());
         buttonRow.setOpaque(false);
-        buttonRow.add(loginButton);
-        buttonRow.add(clearButton);
         buttonRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        GridBagConstraints buttonConstraints = new GridBagConstraints();
+        buttonConstraints.gridx = 0;
+        buttonConstraints.gridy = 0;
+        buttonConstraints.weightx = 1;
+        buttonConstraints.fill = GridBagConstraints.HORIZONTAL;
+        buttonConstraints.insets = new Insets(0, 0, 0, 8);
+        buttonRow.add(loginButton, buttonConstraints);
+        buttonConstraints.gridx = 1;
+        buttonConstraints.weightx = 0;
+        buttonConstraints.insets = new Insets(0, 0, 0, 0);
+        buttonRow.add(clearButton, buttonConstraints);
 
         JLabel hint = UiTheme.createMutedLabel("Use the admin username with the password created during first-time setup.");
         hint.setAlignmentX(Component.LEFT_ALIGNMENT);

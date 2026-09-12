@@ -11,9 +11,12 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -124,10 +127,15 @@ public final class UiTheme {
         textArea.setBackground(new Color(18, 25, 41));
         textArea.setForeground(TEXT_PRIMARY);
         textArea.setCaretColor(TEXT_PRIMARY);
-        textArea.setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
+        textArea.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+    }
+
+    public static void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setPreferredSize(new Dimension(220, 38));
+        comboBox.setMaximumRowCount(12);
     }
 
     public static void styleTable(JTable table) {
@@ -137,9 +145,29 @@ public final class UiTheme {
         table.setForeground(TEXT_PRIMARY);
         table.setSelectionBackground(ACCENT_ALT);
         table.setSelectionForeground(TEXT_PRIMARY);
+        table.setIntercellSpacing(new Dimension(0, 1));
+        table.setShowGrid(false);
         table.getTableHeader().setBackground(SURFACE_ALT);
         table.getTableHeader().setForeground(TEXT_PRIMARY);
         table.getTableHeader().setFont(table.getTableHeader().getFont().deriveFont(Font.BOLD));
+        table.getTableHeader().setReorderingAllowed(false);
+    }
+
+    public static JScrollPane createScrollPane(Component component) {
+        JScrollPane scrollPane = new JScrollPane(component);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(SURFACE);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        return scrollPane;
+    }
+
+    public static void styleSplitPane(JSplitPane splitPane, double resizeWeight) {
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.setOpaque(false);
+        splitPane.setContinuousLayout(true);
+        splitPane.setResizeWeight(resizeWeight);
+        splitPane.setDividerSize(10);
     }
 
     public static JPanel createMetricCard(String labelText, JLabel valueLabel, Color accentColor) {

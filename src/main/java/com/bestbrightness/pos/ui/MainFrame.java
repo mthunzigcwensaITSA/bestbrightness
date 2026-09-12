@@ -32,6 +32,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
@@ -67,6 +68,8 @@ public class MainFrame extends JFrame {
     private final JLabel inventoryValueLabel = UiTheme.createMetricValue("R0.00");
     private final JLabel lowStockLabel = UiTheme.createMetricValue("0");
     private final JTextArea receiptArea = new JTextArea(12, 32);
+    private final JTable productTable = new JTable(productTableModel);
+    private final JTable cartTable = new JTable(cartTableModel);
     private final ReceiptFrame receiptFrame = new ReceiptFrame();
     private ReceiptRenderResult latestReceipt;
 
@@ -80,6 +83,7 @@ public class MainFrame extends JFrame {
         setTitle("Best Brightness POS - Welcome " + user.getUsername());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(980, 680));
+        configureComponents();
 
         JPanel root = new JPanel(new BorderLayout(0, 20));
         root.setBackground(UiTheme.BACKGROUND);
@@ -89,6 +93,20 @@ public class MainFrame extends JFrame {
         setContentPane(root);
         setSize(UiTheme.fitToScreen(1220, 760));
         setLocationRelativeTo(null);
+    }
+
+    private void configureComponents() {
+        UiTheme.styleComboBox(productComboBox);
+        UiTheme.styleField(saleQuantityField);
+        UiTheme.styleTextArea(receiptArea);
+        receiptArea.setEditable(false);
+        receiptArea.setText("Complete a sale to preview the generated receipt slip here.");
+
+        UiTheme.styleTable(productTable);
+        UiTheme.styleTable(cartTable);
+        productTable.setAutoCreateRowSorter(true);
+        productTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        cartTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     private JPanel createHeader(User user) {
@@ -161,10 +179,12 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createProductsPanel() {
-        JPanel panel = new JPanel(new BorderLayout(16, 0));
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createProductFormCard(), createProductTableCard());
+        UiTheme.styleSplitPane(splitPane, 0.30);
+
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.add(createProductFormCard(), BorderLayout.WEST);
-        panel.add(createProductTableCard(), BorderLayout.CENTER);
+        panel.add(splitPane, BorderLayout.CENTER);
         return panel;
     }
 
@@ -198,6 +218,8 @@ public class MainFrame extends JFrame {
         card.add(Box.createVerticalStrut(14));
         addButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(addButton);
+        card.add(Box.createVerticalStrut(8));
+        card.add(UiTheme.createInfoText("Add products here, then review the catalog table on the right."));
         card.add(Box.createVerticalGlue());
         return card;
     }
@@ -229,11 +251,13 @@ public class MainFrame extends JFrame {
         titlePanel.add(Box.createVerticalStrut(4));
         titlePanel.add(subtitle);
 
-        JTable table = new JTable(productTableModel);
-        UiTheme.styleTable(table);
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        footer.setOpaque(false);
+        footer.add(UiTheme.createMutedLabel("Products update automatically after every save."));
 
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(productTable), BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
         return card;
     }
 
@@ -249,10 +273,7 @@ public class MainFrame extends JFrame {
         right.add(createReceiptCard(), BorderLayout.CENTER);
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-        splitPane.setOpaque(false);
-        splitPane.setBorder(BorderFactory.createEmptyBorder());
-        splitPane.setResizeWeight(0.58);
-        splitPane.setDividerSize(10);
+        UiTheme.styleSplitPane(splitPane, 0.58);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -297,7 +318,6 @@ public class MainFrame extends JFrame {
         constraints.gridx = 1;
         constraints.insets = new java.awt.Insets(0, 0, 0, 0);
         constraints.weightx = 0.25;
-        UiTheme.styleField(saleQuantityField);
         saleQuantityField.putClientProperty("JTextField.placeholderText", "3");
         form.add(saleQuantityField, constraints);
 
@@ -310,6 +330,7 @@ public class MainFrame extends JFrame {
         buttonRow.setOpaque(false);
         buttonRow.add(addToCartButton);
         buttonRow.add(completeSaleButton);
+        buttonRow.add(UiTheme.createMutedLabel("Select an item and quantity, then add it to the cart."));
 
         card.add(titlePanel, BorderLayout.NORTH);
         card.add(form, BorderLayout.CENTER);
@@ -327,11 +348,18 @@ public class MainFrame extends JFrame {
         titlePanel.add(Box.createVerticalStrut(4));
         titlePanel.add(UiTheme.createInfoText("Track the selected items before the final checkout action."));
 
-        JTable table = new JTable(cartTableModel);
-        UiTheme.styleTable(table);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        actions.setOpaque(false);
+        JButton removeButton = UiTheme.createSecondaryButton("Remove Selected");
+        removeButton.addActionListener(event -> removeSelectedCartItem());
+        JButton clearButton = UiTheme.createSecondaryButton("Clear Cart");
+        clearButton.addActionListener(event -> clearCart());
+        actions.add(removeButton);
+        actions.add(clearButton);
 
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(table), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(cartTable), BorderLayout.CENTER);
+        card.add(actions, BorderLayout.SOUTH);
         return card;
     }
 
@@ -379,12 +407,10 @@ public class MainFrame extends JFrame {
         titlePanel.add(Box.createVerticalStrut(4));
         titlePanel.add(UiTheme.createInfoText("The latest transaction receipt appears here after checkout."));
 
-        UiTheme.styleTextArea(receiptArea);
-        receiptArea.setEditable(false);
         JButton openWindowButton = UiTheme.createSecondaryButton("Open Receipt Window");
         openWindowButton.addActionListener(event -> openReceiptWindow());
         card.add(titlePanel, BorderLayout.NORTH);
-        card.add(new JScrollPane(receiptArea), BorderLayout.CENTER);
+        card.add(UiTheme.createScrollPane(receiptArea), BorderLayout.CENTER);
         card.add(openWindowButton, BorderLayout.SOUTH);
         return card;
     }
@@ -505,6 +531,31 @@ public class MainFrame extends JFrame {
         totalLabel.setText(String.format("R%.2f", total));
         discountLabel.setText(String.format("R%.2f", discount));
         finalTotalLabel.setText(String.format("R%.2f", total - discount));
+    }
+
+    private void removeSelectedCartItem() {
+        int selectedRow = cartTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Select an item in the cart first.",
+                    "Cart Selection", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int modelRow = cartTable.convertRowIndexToModel(selectedRow);
+        cartItems.remove(modelRow);
+        cartTableModel.removeRow(modelRow);
+        updateTotals();
+    }
+
+    private void clearCart() {
+        if (cartItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The cart is already empty.",
+                    "Cart Empty", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        cartItems.clear();
+        cartTableModel.setRowCount(0);
+        updateTotals();
     }
 
     private int findCartRowByProduct(int productId) {
