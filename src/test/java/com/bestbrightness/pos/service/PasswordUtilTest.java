@@ -25,5 +25,6 @@ class PasswordUtilTest {
     void rejectsMalformedHashInput() {
         assertFalse(PasswordUtil.matches("StrongPass123!", "not-a-valid-hash"));
         assertFalse(PasswordUtil.matches("StrongPass123!", "1$abcd$efgh"));
+        assertFalse(PasswordUtil.matches("StrongPass123!", "1000001$abcd$efgh"));
     }
 }

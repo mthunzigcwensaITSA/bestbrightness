@@ -178,14 +178,17 @@ public class MainFrame extends JFrame {
     private void completeSale() {
         try {
             Sale sale = posService.completeSale(cartItems);
-            receiptArea.setText(ReceiptGenerator.generate(sale));
             cartItems.clear();
             cartTableModel.setRowCount(0);
             updateTotals();
             loadProducts();
+            receiptArea.setText(ReceiptGenerator.generate(sale));
             JOptionPane.showMessageDialog(this, "Sale completed successfully.");
         } catch (IllegalArgumentException | SQLException exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Sale Error", JOptionPane.ERROR_MESSAGE);
+        } catch (RuntimeException exception) {
+            receiptArea.setText("Sale completed, but the receipt could not be generated.");
+            JOptionPane.showMessageDialog(this, receiptArea.getText(), "Receipt Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 

@@ -111,4 +111,13 @@ class PosServiceTest {
         assertEquals(50.0, sale.getDiscount(), 0.001);
         assertEquals(450.0, sale.getFinalTotal(), 0.001);
     }
+
+    @Test
+    void rejectsNonPositiveQuantitiesDuringCheckout() throws Exception {
+        Product bleach = posService.addProduct("Bleach", 250.0, 5);
+        SaleItem item = posService.createSaleItem(bleach, 1);
+        item.setQuantity(0);
+
+        assertThrows(IllegalArgumentException.class, () -> posService.completeSale(List.of(item)));
+    }
 }

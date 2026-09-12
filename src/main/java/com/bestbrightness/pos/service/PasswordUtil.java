@@ -9,6 +9,7 @@ import javax.crypto.spec.PBEKeySpec;
 public final class PasswordUtil {
 
     private static final int ITERATIONS = 65_536;
+    private static final int MAX_ITERATIONS = 1_000_000;
     private static final int KEY_LENGTH = 256;
     private static final int SALT_LENGTH = 16;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -41,7 +42,7 @@ public final class PasswordUtil {
                 return false;
             }
             int iterations = Integer.parseInt(parts[0]);
-            if (iterations < ITERATIONS) {
+            if (iterations < ITERATIONS || iterations > MAX_ITERATIONS) {
                 return false;
             }
             byte[] salt = HexFormat.of().parseHex(parts[1]);

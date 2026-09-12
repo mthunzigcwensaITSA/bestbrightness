@@ -161,6 +161,9 @@ public class PosService {
                 WHERE product_id = ?
                 """)) {
             for (SaleItem item : items) {
+                if (item.getQuantity() <= 0) {
+                    throw new IllegalArgumentException("Quantity must be greater than zero.");
+                }
                 statement.setInt(1, item.getProductId());
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (!resultSet.next()) {
