@@ -37,16 +37,19 @@ public final class PasswordUtil {
             return false;
         }
         try {
-            String[] parts = passwordHash.split("\\$");
+            String[] parts = passwordHash.split("\\$", -1);
             if (parts.length != 3) {
                 return false;
             }
             int iterations = Integer.parseInt(parts[0]);
-            if (iterations < ITERATIONS || iterations > MAX_ITERATIONS) {
+            if (iterations <= 0 || iterations > MAX_ITERATIONS) {
                 return false;
             }
             byte[] salt = HexFormat.of().parseHex(parts[1]);
             byte[] expectedHash = HexFormat.of().parseHex(parts[2]);
+            if (salt.length != SALT_LENGTH || expectedHash.length != KEY_LENGTH / 8) {
+                return false;
+            }
             byte[] actualHash = deriveKey(rawPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
             return MessageDigest.isEqual(expectedHash, actualHash);
         } catch (RuntimeException exception) {
