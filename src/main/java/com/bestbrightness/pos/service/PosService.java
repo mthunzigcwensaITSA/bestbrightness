@@ -92,23 +92,23 @@ public class PosService {
             throw new IllegalArgumentException("Add at least one item to the cart.");
         }
 
-        double total = items.stream().mapToDouble(SaleItem::getSubtotal).sum();
-        double discount = calculateDiscount(total);
-        double finalTotal = total - discount;
-        LocalDate saleDate = LocalDate.now();
-
         try (Connection connection = databaseManager.getConnection()) {
             connection.setAutoCommit(false);
             try {
+                List<SaleItem> persistedItems = normalizeSaleItems(connection, items);
+                double total = persistedItems.stream().mapToDouble(SaleItem::getSubtotal).sum();
+                double discount = calculateDiscount(total);
+                double finalTotal = total - discount;
+                LocalDate saleDate = LocalDate.now();
                 int saleId = insertSale(connection, total, discount, finalTotal, saleDate);
-                for (SaleItem item : items) {
+                for (SaleItem item : persistedItems) {
                     updateStock(connection, item);
                     insertSaleItem(connection, saleId, item);
                     item.setSaleId(saleId);
                 }
                 connection.commit();
 
-                Sale sale = new Sale(total, discount, finalTotal, saleDate, items);
+                Sale sale = new Sale(total, discount, finalTotal, saleDate, persistedItems);
                 sale.setId(saleId);
                 return sale;
             } catch (Exception exception) {
@@ -151,6 +151,30 @@ public class PosService {
             }
         }
         throw new SQLException("Sale could not be saved.");
+    }
+
+    private List<SaleItem> normalizeSaleItems(Connection connection, List<SaleItem> items) throws SQLException {
+        List<SaleItem> normalizedItems = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT product_name, price
+                FROM products
+                WHERE product_id = ?
+                """)) {
+            for (SaleItem item : items) {
+                statement.setInt(1, item.getProductId());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        throw new IllegalArgumentException("Product no longer exists.");
+                    }
+                    normalizedItems.add(new SaleItem(
+                            item.getProductId(),
+                            resultSet.getString("product_name"),
+                            item.getQuantity(),
+                            resultSet.getDouble("price") * item.getQuantity()));
+                }
+            }
+        }
+        return normalizedItems;
     }
 
     private void insertSaleItem(Connection connection, int saleId, SaleItem item) throws SQLException {

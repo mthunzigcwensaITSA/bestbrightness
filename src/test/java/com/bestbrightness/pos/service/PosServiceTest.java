@@ -98,4 +98,17 @@ class PosServiceTest {
             assertEquals(0, resultSet.getInt(1));
         }
     }
+
+    @Test
+    void recomputesSubtotalsDuringCheckout() throws Exception {
+        Product bleach = posService.addProduct("Bleach", 250.0, 5);
+        SaleItem item = posService.createSaleItem(bleach, 2);
+        item.setSubtotal(1.0);
+
+        Sale sale = posService.completeSale(List.of(item));
+
+        assertEquals(500.0, sale.getTotal(), 0.001);
+        assertEquals(50.0, sale.getDiscount(), 0.001);
+        assertEquals(450.0, sale.getFinalTotal(), 0.001);
+    }
 }

@@ -41,6 +41,9 @@ public final class PasswordUtil {
                 return false;
             }
             int iterations = Integer.parseInt(parts[0]);
+            if (iterations < ITERATIONS) {
+                return false;
+            }
             byte[] salt = HexFormat.of().parseHex(parts[1]);
             byte[] expectedHash = HexFormat.of().parseHex(parts[2]);
             byte[] actualHash = deriveKey(rawPassword.toCharArray(), salt, iterations, expectedHash.length * 8);

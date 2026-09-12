@@ -153,6 +153,10 @@ public class MainFrame extends JFrame {
         try {
             Product product = (Product) productComboBox.getSelectedItem();
             int quantity = Integer.parseInt(saleQuantityField.getText().trim());
+            int cartQuantity = getCartQuantityForProduct(product == null ? 0 : product.getId());
+            if (product != null && cartQuantity + quantity > product.getQuantity()) {
+                throw new IllegalArgumentException("Requested quantity exceeds stock.");
+            }
             SaleItem item = posService.createSaleItem(product, quantity);
             cartItems.add(item);
             cartTableModel.addRow(new Object[]{
@@ -214,5 +218,12 @@ public class MainFrame extends JFrame {
         totalLabel.setText("Total: R" + String.format("%.2f", total));
         discountLabel.setText("Discount: R" + String.format("%.2f", discount));
         finalTotalLabel.setText("Final Total: R" + String.format("%.2f", total - discount));
+    }
+
+    private int getCartQuantityForProduct(int productId) {
+        return cartItems.stream()
+                .filter(item -> item.getProductId() == productId)
+                .mapToInt(SaleItem::getQuantity)
+                .sum();
     }
 }
