@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -115,6 +116,7 @@ public final class UiTheme {
 
     public static void styleField(JTextField field) {
         field.setPreferredSize(new Dimension(220, 40));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
     }
 
     public static void styleTextArea(JTextArea textArea) {
@@ -150,6 +152,25 @@ public final class UiTheme {
         card.add(valueLabel, java.awt.BorderLayout.CENTER);
         card.add(createMutedLabel(labelText), java.awt.BorderLayout.SOUTH);
         return card;
+    }
+
+    public static JTextArea createInfoText(String text) {
+        JTextArea textArea = new JTextArea(text);
+        textArea.setEditable(false);
+        textArea.setFocusable(false);
+        textArea.setOpaque(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setForeground(TEXT_SECONDARY);
+        textArea.setBorder(BorderFactory.createEmptyBorder());
+        return textArea;
+    }
+
+    public static Dimension fitToScreen(int preferredWidth, int preferredHeight) {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = Math.max(360, Math.min(preferredWidth, screenSize.width - 80));
+        int height = Math.max(360, Math.min(preferredHeight, screenSize.height - 80));
+        return new Dimension(width, height);
     }
 
     public static void setContentPadding(JComponent component) {

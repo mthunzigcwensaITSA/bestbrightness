@@ -3,7 +3,6 @@ package com.bestbrightness.pos.ui;
 import com.bestbrightness.pos.model.User;
 import com.bestbrightness.pos.service.AuthService;
 import com.bestbrightness.pos.service.PosService;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -22,8 +21,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 public class LoginFrame extends JFrame {
 
@@ -41,29 +40,35 @@ public class LoginFrame extends JFrame {
     private void initialize() {
         setTitle("Best Brightness POS - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1040, 640);
-        setMinimumSize(new Dimension(960, 600));
-        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(420, 520));
 
-        JPanel root = new JPanel(new BorderLayout());
+        JPanel root = new JPanel();
         root.setBackground(UiTheme.BACKGROUND);
-        root.setBorder(BorderFactory.createEmptyBorder(28, 28, 28, 28));
-        root.add(createBrandPanel(), BorderLayout.WEST);
-        root.add(createLoginPanel(), BorderLayout.CENTER);
-        setContentPane(root);
+        root.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
+        root.add(createBrandPanel());
+        root.add(Box.createVerticalStrut(18));
+        root.add(createLoginPanel());
+
+        JScrollPane scrollPane = new JScrollPane(root);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        setContentPane(scrollPane);
+        setSize(UiTheme.fitToScreen(760, 760));
+        setLocationRelativeTo(null);
     }
 
     private JPanel createBrandPanel() {
         JPanel panel = UiTheme.createCard();
-        panel.setPreferredSize(new Dimension(420, 0));
         panel.setBackground(UiTheme.SURFACE_ALT);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 320));
 
         JLabel badge = new JLabel("BB");
         badge.setOpaque(true);
         badge.setBackground(UiTheme.ACCENT);
         badge.setForeground(UiTheme.BACKGROUND);
-        badge.setHorizontalAlignment(SwingConstants.CENTER);
         badge.setFont(badge.getFont().deriveFont(Font.BOLD, 34f));
         badge.setMaximumSize(new Dimension(88, 88));
         badge.setPreferredSize(new Dimension(88, 88));
@@ -72,7 +77,8 @@ public class LoginFrame extends JFrame {
 
         JLabel title = UiTheme.createTitleLabel("Best Brightness");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitle = UiTheme.createMutedLabel("Modern point of sale operations for cleaning products, cashier workflows, and live stock control.");
+        javax.swing.JTextArea subtitle = UiTheme.createInfoText(
+                "Modern point of sale operations for cleaning products, cashier workflows, and live stock control.");
         subtitle.setFont(subtitle.getFont().deriveFont(15f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -98,7 +104,7 @@ public class LoginFrame extends JFrame {
         feature.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel titleLabel = UiTheme.createSectionLabel(title);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 15f));
-        JLabel descriptionLabel = UiTheme.createMutedLabel(description);
+        javax.swing.JTextArea descriptionLabel = UiTheme.createInfoText(description);
         feature.add(titleLabel);
         feature.add(Box.createVerticalStrut(4));
         feature.add(descriptionLabel);
@@ -106,12 +112,10 @@ public class LoginFrame extends JFrame {
     }
 
     private JPanel createLoginPanel() {
-        JPanel wrapper = new JPanel(new GridBagLayout());
-        wrapper.setOpaque(false);
-
         JPanel panel = UiTheme.createCard();
-        panel.setPreferredSize(new Dimension(420, 480));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 460));
 
         JLabel overline = UiTheme.createMutedLabel("WELCOME BACK");
         overline.setFont(overline.getFont().deriveFont(Font.BOLD, 13f));
@@ -119,7 +123,8 @@ public class LoginFrame extends JFrame {
         JLabel title = UiTheme.createTitleLabel("Sign in to your workspace");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 30f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitle = UiTheme.createMutedLabel("Manage products, process sales, and track receipts from a polished desktop experience.");
+        javax.swing.JTextArea subtitle = UiTheme.createInfoText(
+                "Manage products, process sales, and track receipts from a polished desktop experience.");
         subtitle.setFont(subtitle.getFont().deriveFont(15f));
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -127,6 +132,8 @@ public class LoginFrame extends JFrame {
         UiTheme.styleField(passwordField);
         usernameField.putClientProperty("JTextField.placeholderText", "Enter your username");
         passwordField.putClientProperty("JTextField.placeholderText", "Enter your password");
+        usernameField.addActionListener(event -> handleLogin());
+        passwordField.addActionListener(event -> handleLogin());
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
@@ -179,8 +186,7 @@ public class LoginFrame extends JFrame {
         panel.add(Box.createVerticalGlue());
         panel.add(hint);
 
-        wrapper.add(panel);
-        return wrapper;
+        return panel;
     }
 
     private void handleLogin() {
